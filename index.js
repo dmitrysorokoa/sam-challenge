@@ -14,7 +14,7 @@ app.use(express.static("public"));
 // })
 
 app.get('/test', (req, res) => {
-  res.send({ data: 'test' })
+  res.send({ data: 'test bla' })
 })
 
 app.use((req, res, next) => {
