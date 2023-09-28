@@ -3,7 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 
 function App() {
-  const [state, setState] = useState(null);
+  const [state, setState] = useState("null");
 
   const callBackendAPI = async () => {
     const response = await fetch('/test');
@@ -12,12 +12,14 @@ function App() {
     if (response.status !== 200) {
       throw Error(body.message)
     }
+
+    console.log(body)
     return body;
   };
 
   useEffect(() => {
     callBackendAPI()
-    .then(res => setState(res))
+    .then(res => setState(res.data))
     .catch(err => console.log(err));
   }, [])
 

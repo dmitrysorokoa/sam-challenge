@@ -4,7 +4,9 @@ const app = express()
 
 const config = require('platformsh-config').config();
 
-app.use(express.static(path.join(__dirname, "..", "build")));
+const port = !config.isValidPlatform() ? 3003 : config.port;
+
+app.use(express.static(path.join(__dirname, "client", "build")));
 app.use(express.static("public"));
 
 // app.get('/', (req, res) => {
@@ -12,13 +14,13 @@ app.use(express.static("public"));
 // })
 
 app.get('/test', (req, res) => {
-  res.send('test')
+  res.send({ data: 'test' })
 })
 
 app.use((req, res, next) => {
-  res.sendFile(path.join(__dirname, "..", "build", "index.html"));
+  res.sendFile(path.join(__dirname, "client", "build", "index.html"));
 });
 
-app.listen(config.port, () => {
-  console.log(`Example app listening on port ${config.port}`)
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
 })
