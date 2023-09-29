@@ -1,6 +1,6 @@
-const express = require('express')
+import express, { Express, Request, Response } from 'express';
 const path = require("path");
-const app = express()
+const app: Express = express()
 
 const config = require('platformsh-config').config();
 
@@ -9,15 +9,11 @@ const port = !config.isValidPlatform() ? 3003 : config.port;
 app.use(express.static(path.join(__dirname, "client", "build")));
 app.use(express.static("public"));
 
-// app.get('/', (req, res) => {
-//   res.send('Hello World1!')
-// })
-
-app.get('/test', (req, res) => {
-  res.send({ data: 'test bla' })
+app.get('/api/test', (req: Request, res: Response) => {
+  res.send({ data: 'test bla1' })
 })
 
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next) => {
   res.sendFile(path.join(__dirname, "client", "build", "index.html"));
 });
 

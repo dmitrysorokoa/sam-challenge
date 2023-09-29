@@ -6,7 +6,7 @@ function App() {
   const [state, setState] = useState("null");
 
   const callBackendAPI = async () => {
-    const response = await fetch('/test');
+    const response = await fetch('/api/test');
     const body = await response.json();
 
     if (response.status !== 200) {
@@ -28,7 +28,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          Edit <code>src/App.js</code> and save to reload
         </p>
         <a
           className="App-link"
