@@ -4,9 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc && cd client && npm run build",
+    "build": "webpack && cd client && npm run build",
     "start": "node dist/index.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\" \"cd client && npm run start\""
+    "dev": "concurrently \"npm run start:dev\" \"cd client && npm run start\"",
+    "webpack": "webpack",
+    "start:dev": "NODE_ENV=development webpack",
+    "run:dev": "nodemon dist/index.js"
   },
   "author": "",
   "license": "ISC",
@@ -18,7 +21,12 @@
     "@types/express": "^4.17.18",
     "@types/node": "^20.7.1",
     "concurrently": "^8.2.1",
+    "hook-shell-script-webpack-plugin": "^0.3.0",
     "nodemon": "^3.0.1",
-    "typescript": "^5.2.2"
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-node-externals": "^3.0.0",
+    "webpack-shell-plugin-next": "^2.3.1"
   }
 }

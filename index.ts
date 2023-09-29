@@ -10,7 +10,7 @@ app.use(express.static(path.join(__dirname, "..", "client", "build")));
 app.use(express.static("public"));
 
 app.get('/api/test', (req: Request, res: Response) => {
-  res.send({ data: 'test bla12' })
+  res.send({ data: 'test a12dc2vc' })
 })
 
 app.use((req: Request, res: Response, next) => {
