@@ -1,12 +1,8 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
-const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const HookShellScriptPlugin = require('hook-shell-script-webpack-plugin');
 
-
-const {
-  NODE_ENV = 'production',
-} = process.env;
+const { NODE_ENV = 'production' } = process.env;
 
 module.exports = {
   entry: './index.ts',
@@ -14,7 +10,7 @@ module.exports = {
   target: 'node',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'index.js'
+    filename: 'index.js',
   },
   resolve: {
     extensions: ['.ts', '.js'],
@@ -23,11 +19,9 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        use: [
-          'ts-loader',
-        ]
-      }
-    ]
+        use: ['ts-loader'],
+      },
+    ],
   },
   plugins: [
     // new WebpackShellPluginNext({
@@ -37,14 +31,15 @@ module.exports = {
     //     parallel: false
     //   }
     // }),
-    NODE_ENV === 'development' && new HookShellScriptPlugin({
-      afterEmit: ['npm run run:dev']
-    })
+    NODE_ENV === 'development' &&
+      new HookShellScriptPlugin({
+        afterEmit: ['npm run run:dev'],
+      }),
   ],
-  externals: [ nodeExternals() ],
+  externals: [nodeExternals()],
   watch: NODE_ENV === 'development',
   watchOptions: {
     poll: true,
-    ignored: /node_modules/
-  }
-}
+    ignored: /node_modules/,
+  },
+};
