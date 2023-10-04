@@ -10,6 +10,7 @@ export function createRandomUser() {
   return {
     userId: faker.string.uuid(),
     username: faker.internet.userName(),
+    text: faker.lorem.sentence(3),
   };
 }
 
@@ -17,7 +18,7 @@ export const users = faker.helpers.multiple(createRandomUser, {
   count: 999,
 });
 
-const pros = [
+const initPros = [
   'English is the first language',
   'You can live in one of the cities with the highest quality of life in the world',
   'The unemployment rate is low, and salaries are high',
@@ -40,7 +41,7 @@ const pros = [
   'Good air quality',
 ];
 
-const cons = [
+const initCons = [
   'You’ll be far away from home',
   'It’s one of the most expensive countries in the world',
   'It can be hard to find your first qualified job',
@@ -63,11 +64,35 @@ const cons = [
   'High carbon footprint',
 ];
 
+const initVoting = () => {
+  return {
+    pros: initPros.slice(),
+    cons: initCons.slice(),
+    createdPros: [],
+    createdCons: [],
+  };
+};
+
+interface ProConElement {
+  title: string;
+  likes: number;
+  dislikes: number;
+}
+
+let votingData:
+  | {
+      pros: string[];
+      cons: string[];
+      createdPros: ProConElement[];
+      createdCons: ProConElement[];
+    }
+  | undefined;
+
 enum EventType {
-  CreatePro,
-  CreateCon,
-  Like,
-  Dislike,
+  CreatePro = 'CreatePro',
+  CreateCon = 'CreateCon',
+  Like = 'Like',
+  Dislike = 'Dislike',
 }
 
 const app: Express = express();
@@ -79,6 +104,126 @@ const io = new Server(server, {
     origin: 'http://localhost:3004',
   },
 });
+
+const getAvailableEvents = () => {
+  const events = [];
+
+  if (votingData?.createdPros.length || votingData?.createdCons.length) {
+    events.push(EventType.Dislike, EventType.Like);
+  }
+
+  if (votingData?.pros.length) {
+    events.push(EventType.CreatePro);
+  }
+
+  if (votingData?.cons.length) {
+    events.push(EventType.CreateCon);
+  }
+
+  return events;
+};
+
+const likeEvent = (selectedElement?: ProConElement) => {
+  if (!votingData) return;
+  let element: ProConElement | undefined;
+  if (!selectedElement) {
+    const proAndCons = [votingData.createdCons, votingData.createdPros];
+    const randomIndexFirst = Math.floor(Math.random() * proAndCons.length);
+
+    const selectedList = proAndCons[randomIndexFirst];
+
+    if (selectedList) {
+      const randomIndexSecond = Math.floor(Math.random() * selectedList.length);
+
+      element = selectedList[randomIndexSecond];
+    }
+  }
+
+  if (!element) return;
+
+  element.likes = element.likes + 1;
+
+  io.emit('chat message', `like: ${element.title}`);
+};
+
+const dislikeEvent = (selectedElement?: ProConElement) => {
+  if (!votingData) return;
+  let element: ProConElement | undefined;
+  if (!selectedElement) {
+    const proAndCons = [votingData.createdCons, votingData.createdPros];
+    const randomIndexFirst = Math.floor(Math.random() * proAndCons.length);
+
+    const selectedList = proAndCons[randomIndexFirst];
+
+    if (selectedList) {
+      const randomIndexSecond = Math.floor(Math.random() * selectedList.length);
+
+      element = selectedList[randomIndexSecond];
+    }
+  }
+
+  if (!element) return;
+
+  element.dislikes = element.dislikes + 1;
+
+  io.emit('chat message', `dislike: ${element.title}`);
+};
+
+const createConEvent = () => {
+  if (!votingData) return;
+  const randomIndex = Math.floor(Math.random() * votingData.cons.length);
+
+  const selecteCon = votingData.cons.splice(randomIndex, 1)[0];
+
+  if (!selecteCon) return;
+
+  votingData.createdCons.push({ title: selecteCon, likes: 0, dislikes: 0 });
+
+  io.emit('chat message', `create con: ${selecteCon}`);
+};
+
+const createProEvent = () => {
+  if (!votingData) return;
+  const randomIndex = Math.floor(Math.random() * votingData.pros.length);
+
+  const selectePro = votingData.pros.splice(randomIndex, 1)[0];
+
+  if (!selectePro) return;
+
+  votingData.createdPros.push({ title: selectePro, likes: 0, dislikes: 0 });
+
+  io.emit('chat message', `create pro: ${selectePro}`);
+};
+
+const eventsMap = {
+  [EventType.CreateCon]: createConEvent,
+  [EventType.CreatePro]: createProEvent,
+  [EventType.Like]: likeEvent,
+  [EventType.Dislike]: dislikeEvent,
+};
+
+let votingStatus = false;
+
+const runRandomEvent = () => {
+  if (!votingData) return;
+
+  const events = getAvailableEvents();
+  const randomIndex = Math.floor(Math.random() * events.length);
+  const event = events[randomIndex];
+
+  console.log('randomIndex ', randomIndex);
+  console.log('events ', events);
+  console.log('event ', event);
+
+  if (event) {
+    console.log('event chosen');
+    eventsMap[event]();
+  } else {
+    console.log('dont have available events');
+  }
+};
+
+let timerId: NodeJS.Timeout;
 
 const config = require('platformsh-config').config();
 
@@ -116,6 +261,29 @@ io.on('connection', (socket) => {
   socket.on('chat message', (msg) => {
     console.log('message: ' + msg);
     io.emit('chat message', msg);
+  });
+
+  socket.on('vote start', () => {
+    console.log('vote started');
+    votingStatus = true;
+    votingData = initVoting();
+    io.emit('vote start');
+
+    timerId = setInterval(() => {
+      runRandomEvent();
+    }, 1000);
+  });
+
+  socket.on('vote end', () => {
+    console.log('vote ended');
+    votingStatus = false;
+    io.emit('vote end');
+
+    clearInterval(timerId);
+  });
+
+  socket.on('vote status', () => {
+    io.emit('vote status', votingStatus);
   });
 });
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,7 +13,7 @@ import {
 import { socket } from './socket';
 import { Bar } from 'react-chartjs-2';
 import logo from './logo.svg';
-import './App.css';
+import styles from './App.module.scss';
 import { ConnectionManager } from './ConnectionManager';
 import { MyForm } from './MyForm';
 
@@ -71,7 +71,10 @@ function App() {
   const [chartNormal, setChartNormal] = useState(null);
 
   const [isConnected, setIsConnected] = useState(socket.connected);
+  const [voteStatus, setVoteStatus] = useState(null);
   const [fooEvents, setFooEvents] = useState([]);
+
+  const listRef = useRef();
 
   const getLinearDistribution = async () => {
     try {
@@ -92,6 +95,10 @@ function App() {
   };
 
   useEffect(() => {
+    socket.emit('vote status');
+  }, []);
+
+  useEffect(() => {
     function onConnect() {
       setIsConnected(true);
     }
@@ -102,16 +109,36 @@ function App() {
 
     function onFooEvent(value) {
       setFooEvents(previous => [...previous, value]);
+      listRef.current?.scrollTo(0, listRef.current?.scrollHeight);
+    }
+
+    function onVoteStart() {
+      setVoteStatus(true);
+      setFooEvents([])
+    }
+
+    function onVoteEnd() {
+      setVoteStatus(false);
+    }
+
+    function onVoteStatus(value) {
+      setVoteStatus(value);
     }
 
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on('chat message', onFooEvent);
+    socket.on('vote start', onVoteStart);
+    socket.on('vote end', onVoteEnd);
+    socket.on('vote status', onVoteStatus);
 
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('chat message', onFooEvent);
+      socket.off('vote start', onVoteStart);
+      socket.off('vote end', onVoteEnd);
+      socket.off('vote status', onVoteStatus);
     };
   }, []);
 
@@ -122,32 +149,20 @@ function App() {
 
   return (
     <div className="App">
-      <p>State: { '' + isConnected }</p>;
-      <ul>
-    {
-      fooEvents.map((event, index) =>
-        <li key={ index }>{ event }</li>
-      )
-    }
-    </ul>
-    <ConnectionManager />
+      <p>State: { '' + isConnected }</p>
+      <p>Vote status: { '' + voteStatus }</p>
+      <ul ref={listRef} className={styles.list}>
+        {
+          fooEvents.map((event, index) =>
+            <li key={ index }>{ event }</li>
+          )
+        }
+      </ul>
+    <ConnectionManager voteStatus={voteStatus}/>
     <MyForm />
       {chartLinear && <Bar options={options} data={chartLinear} />}
       {chartNormal && <Bar options={options} data={chartNormal} />}
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <img src={logo} className="App-logo" alt="logo" />
     </div>
   );
 }
