@@ -4,13 +4,18 @@ import { faker } from '@faker-js/faker';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import { Distribution, getDistribution } from './distribution';
+import random from 'random';
+import {
+  Distribution,
+  getDistribution,
+  getLogNormalDistribution,
+} from './distribution';
 
 export function createRandomUser() {
   return {
     userId: faker.string.uuid(),
     username: faker.internet.userName(),
-    text: faker.lorem.sentence(3),
+    text: faker.word.words({ count: { min: 2, max: 3 } }),
   };
 }
 
@@ -19,49 +24,29 @@ export const users = faker.helpers.multiple(createRandomUser, {
 });
 
 const initPros = [
-  'English is the first language',
-  'You can live in one of the cities with the highest quality of life in the world',
-  'The unemployment rate is low, and salaries are high',
-  'You can change careers easily',
-  'Many visas exist to work in the country',
-  'You’ll get an outstanding work-life balance',
-  'You can go on short adventures',
-  'Lots of nature and native wildlife',
-  'You’ll live close to the beach',
-  'There’s a good healthcare system',
-  'The crime rate is very low',
+  'English language',
+  'High salaries',
+  'Change careers easily',
+  'Many visas to work',
+  'Good nature',
+  'Live close to the beach',
+  'Good healthcare system',
+  'Low crime rate',
   'Infrastructure',
-  'People are relaxed and friendly',
-  'There are a lot of immigrants and expats',
-  'You can find delicious food from many cultures',
-  'Australian wines and beers',
-  'They serve excellent coffee',
-  'It’s a great country for an active, healthy lifestyle',
-  'The education system is well-regarded',
   'Good air quality',
 ];
 
 const initCons = [
-  'You’ll be far away from home',
-  'It’s one of the most expensive countries in the world',
-  'It can be hard to find your first qualified job',
-  'Your rights will be limited until you become a permanent resident',
-  'Taxes can be high at the start and impact your salary',
-  'International travel can be complicated',
+  'Expensive country',
+  'Hard to find your first job',
+  'High taxes',
   'The weather can be extreme',
-  'Wildlife and nature can be scary',
+  'Scary wildlife and nature',
   'The sun is dangerous',
-  'Some health services are costly, and specialists aren’t the best',
+  'Some health services are costly',
   'Public transport is expensive',
-  'Lack of history and charm in cities',
-  'It’s hard to get into the end-of-year festive spirit',
-  'There are a lot of immigrants and expats !!!!!!!!',
-  'Australian cuisine isn’t impressive',
-  'Relationship with alcohol ',
+  'Relationship with alcohol',
   'Everything closes early',
-  'Artists don’t often tour there',
-  'It’s expensive to have kids',
-  'High carbon footprint',
 ];
 
 const initVoting = () => {
@@ -70,10 +55,14 @@ const initVoting = () => {
     cons: initCons.slice(),
     createdPros: [],
     createdCons: [],
+    voteCount: 0,
+    startDate: Date.now(),
+    time: '0:0',
   };
 };
 
 interface ProConElement {
+  id: string;
   title: string;
   likes: number;
   dislikes: number;
@@ -85,6 +74,8 @@ let votingData:
       cons: string[];
       createdPros: ProConElement[];
       createdCons: ProConElement[];
+      voteCount: number;
+      startDate: number;
     }
   | undefined;
 
@@ -105,10 +96,20 @@ const io = new Server(server, {
   },
 });
 
+const convertMillisecondsInTime = (value: number, withMiliseconds = true) => {
+  const min = Math.floor((value / 1000 / 60) << 0);
+  const sec = Math.floor((value / 1000) % 60);
+  const milliseconds = value % 1000;
+  return `${min}:${sec}${withMiliseconds ? `.${milliseconds}` : ''}`;
+};
+
 const getAvailableEvents = () => {
   const events = [];
 
-  if (votingData?.createdPros.length || votingData?.createdCons.length) {
+  if (
+    (votingData?.createdPros.length || votingData?.createdCons.length) &&
+    votingData.voteCount < 10000
+  ) {
     events.push(EventType.Dislike, EventType.Like);
   }
 
@@ -123,76 +124,98 @@ const getAvailableEvents = () => {
   return events;
 };
 
+const getRandomCreatedElement = () => {
+  if (!votingData) return;
+  const proAndCons = votingData.createdCons.concat(votingData.createdPros);
+  const randomIndex = Math.floor(Math.random() * proAndCons.length);
+  return proAndCons[randomIndex];
+};
+
 const likeEvent = (selectedElement?: ProConElement) => {
   if (!votingData) return;
-  let element: ProConElement | undefined;
-  if (!selectedElement) {
-    const proAndCons = [votingData.createdCons, votingData.createdPros];
-    const randomIndexFirst = Math.floor(Math.random() * proAndCons.length);
-
-    const selectedList = proAndCons[randomIndexFirst];
-
-    if (selectedList) {
-      const randomIndexSecond = Math.floor(Math.random() * selectedList.length);
-
-      element = selectedList[randomIndexSecond];
-    }
-  }
+  const element: ProConElement | undefined =
+    selectedElement || getRandomCreatedElement();
 
   if (!element) return;
 
   element.likes = element.likes + 1;
 
-  io.emit('chat message', `like: ${element.title}`);
+  votingData.voteCount++;
+
+  io.emit('chat message', {
+    id: faker.string.uuid(),
+    message: `${convertMillisecondsInTime(
+      Date.now() - votingData.startDate,
+    )} like: ${element.title}`,
+  });
 };
 
 const dislikeEvent = (selectedElement?: ProConElement) => {
   if (!votingData) return;
-  let element: ProConElement | undefined;
-  if (!selectedElement) {
-    const proAndCons = [votingData.createdCons, votingData.createdPros];
-    const randomIndexFirst = Math.floor(Math.random() * proAndCons.length);
-
-    const selectedList = proAndCons[randomIndexFirst];
-
-    if (selectedList) {
-      const randomIndexSecond = Math.floor(Math.random() * selectedList.length);
-
-      element = selectedList[randomIndexSecond];
-    }
-  }
+  const element: ProConElement | undefined =
+    selectedElement || getRandomCreatedElement();
 
   if (!element) return;
 
   element.dislikes = element.dislikes + 1;
 
-  io.emit('chat message', `dislike: ${element.title}`);
+  votingData.voteCount++;
+
+  io.emit('chat message', {
+    id: faker.string.uuid(),
+    message: `${convertMillisecondsInTime(
+      Date.now() - votingData.startDate,
+    )} dislike: ${element.title}`,
+  });
 };
 
-const createConEvent = () => {
+const getRandomElement = (items: string[]) => {
   if (!votingData) return;
-  const randomIndex = Math.floor(Math.random() * votingData.cons.length);
+  const randomIndex = Math.floor(Math.random() * items.length);
 
-  const selecteCon = votingData.cons.splice(randomIndex, 1)[0];
+  return items.splice(randomIndex, 1)[0];
+};
+
+const createConEvent = (text?: string) => {
+  if (!votingData) return;
+  const selecteCon = text || getRandomElement(votingData.cons);
 
   if (!selecteCon) return;
 
-  votingData.createdCons.push({ title: selecteCon, likes: 0, dislikes: 0 });
+  votingData.createdCons.push({
+    id: faker.string.uuid(),
+    title: selecteCon,
+    likes: 0,
+    dislikes: 0,
+  });
 
-  io.emit('chat message', `create con: ${selecteCon}`);
+  io.emit('chat message', {
+    id: faker.string.uuid(),
+    message: `${convertMillisecondsInTime(
+      Date.now() - votingData.startDate,
+    )} create con: ${selecteCon}`,
+  });
 };
 
-const createProEvent = () => {
+const createProEvent = (text?: string) => {
   if (!votingData) return;
-  const randomIndex = Math.floor(Math.random() * votingData.pros.length);
-
-  const selectePro = votingData.pros.splice(randomIndex, 1)[0];
+  const selectePro = text || getRandomElement(votingData.pros);
 
   if (!selectePro) return;
 
-  votingData.createdPros.push({ title: selectePro, likes: 0, dislikes: 0 });
+  votingData.createdPros.push({
+    id: faker.string.uuid(),
+    title: selectePro,
+    likes: 0,
+    dislikes: 0,
+  });
 
-  io.emit('chat message', `create pro: ${selectePro}`);
+  io.emit('chat message', {
+    id: faker.string.uuid(),
+    message: `${convertMillisecondsInTime(
+      Date.now() - votingData.startDate,
+    )} create pro: ${selectePro}`,
+  });
 };
 
 const eventsMap = {
@@ -211,19 +234,15 @@ const runRandomEvent = () => {
   const randomIndex = Math.floor(Math.random() * events.length);
   const event = events[randomIndex];
 
-  console.log('randomIndex ', randomIndex);
-  console.log('events ', events);
-  console.log('event ', event);
-
   if (event) {
-    console.log('event chosen');
     eventsMap[event]();
   } else {
     console.log('dont have available events');
+    // io.emit('vote end');
   }
 };
 
-let timerId: NodeJS.Timeout;
+let eventGeneratorTimerId: NodeJS.Timeout;
 
 const config = require('platformsh-config').config();
 
@@ -232,15 +251,12 @@ const port = !config.isValidPlatform() ? 3003 : config.port;
 app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
 app.use(express.static('public'));
 
-app.get('/api/normal-distribution', (req: Request, res: Response) => {
+app.get('/api/distributions', (req: Request, res: Response) => {
   res.send({
-    ...getDistribution(Distribution.Normal),
-  });
-});
-
-app.get('/api/linear-distribution', (req: Request, res: Response) => {
-  res.send({
-    ...getDistribution(Distribution.Linear),
+    normal: { ...getDistribution(Distribution.Normal) },
+    linear: { ...getDistribution(Distribution.Linear) },
+    exp: { ...getDistribution(Distribution.Exp) },
+    bernoulli: { ...getDistribution(Distribution.Bernoulli) },
   });
 });
 
@@ -248,9 +264,12 @@ app.get('/api/users', (req: Request, res: Response) => {
   res.send({ data: users });
 });
 
-app.use((req: Request, res: Response, next) => {
+app.use((req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
 });
+
+let createEventsTimers = [];
+let voteEventsTimers = [];
 
 io.on('connection', (socket) => {
   console.log('a user connected');
@@ -269,9 +288,55 @@ io.on('connection', (socket) => {
     votingData = initVoting();
     io.emit('vote start');
 
-    timerId = setInterval(() => {
-      runRandomEvent();
-    }, 1000);
+    const nums = getLogNormalDistribution(10000).nums;
+
+    const array = Array(20)
+      .fill(0)
+      .map(() => {
+        const randomIndex = random.int(0, nums.length);
+
+        return nums[randomIndex] || 0;
+      });
+
+    console.log(nums.length);
+    console.log(array);
+
+    voteEventsTimers = nums.map((el) => {
+      return setTimeout(
+        () => {
+          const events = [EventType.Dislike, EventType.Like];
+          const randomIndex = random.int();
+
+          const event = events[randomIndex];
+
+          if (event) {
+            eventsMap[event]();
+          } else {
+            console.log('error');
+          }
+        },
+        Math.abs(el - 300) * 1000,
+      );
+    });
+
+    createEventsTimers = array.map((num) => {
+      return setTimeout(() => {
+        const events = [EventType.CreateCon, EventType.CreatePro];
+        const randomIndex = random.int();
+
+        const event = events[randomIndex];
+
+        if (event) {
+          eventsMap[event]();
+        } else {
+          console.log('error');
+        }
+      }, num * 1000);
+    });
+
+    eventGeneratorTimerId = setInterval(() => {
+      // runRandomEvent();
+    }, 25);
   });
 
   socket.on('vote end', () => {
@@ -279,11 +344,64 @@ io.on('connection', (socket) => {
     votingStatus = false;
     io.emit('vote end');
 
-    clearInterval(timerId);
+    createEventsTimers.forEach((timer) => {
+      clearInterval(timer);
+    });
+    voteEventsTimers.forEach((timer) => {
+      clearInterval(timer);
+    });
+
+    clearInterval(eventGeneratorTimerId);
   });
 
   socket.on('vote status', () => {
     io.emit('vote status', votingStatus);
+  });
+
+  socket.on('vote result', () => {
+    if (Date.now() - (votingData?.startDate || 0) >= 300000) {
+      io.emit('vote end');
+    }
+
+    io.emit('vote result', {
+      pros: votingData?.createdPros,
+      cons: votingData?.createdCons,
+      voteCount: votingData?.voteCount,
+      time: votingData
+        ? convertMillisecondsInTime(Date.now() - votingData.startDate, false)
+        : '0:0',
+    });
+  });
+
+  socket.on('add pro or con', (data) => {
+    if (!votingData) return;
+    console.log(`add ${data.type}: ${data.text}`);
+
+    if (data.type === 'pro') {
+      createProEvent(data.text);
+    } else {
+      createConEvent(data.text);
+    }
+  });
+
+  socket.on('like', (data) => {
+    if (!votingData) return;
+
+    if (data.type === 'pro') {
+      likeEvent(votingData.createdPros.find((item) => item.id === data.id));
+    } else {
+      likeEvent(votingData.createdCons.find((item) => item.id === data.id));
+    }
+  });
+
+  socket.on('dislike', (data) => {
+    if (!votingData) return;
+
+    if (data.type === 'pro') {
+      dislikeEvent(votingData.createdPros.find((item) => item.id === data.id));
+    } else {
+      dislikeEvent(votingData.createdCons.find((item) => item.id === data.id));
+    }
   });
 });
 
