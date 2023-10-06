@@ -268,8 +268,8 @@ app.use((req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
 });
 
-let createEventsTimers = [];
-let voteEventsTimers = [];
+let createEventsTimers: NodeJS.Timeout[] = [];
+let voteEventsTimers: NodeJS.Timeout[] = [];
 
 io.on('connection', (socket) => {
   console.log('a user connected');
