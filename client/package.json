@@ -21,6 +21,7 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@types/chart.js": "^2.9.38",
     "sass": "^1.68.0"
   },
   "overrides": {
@@ -29,7 +30,7 @@
   "scripts": {
     "start": "PORT=3004 react-scripts start",
     "build": "npm i && react-scripts build",
-    "test": "react-scripts test",
+    "fast:build": "react-scripts build",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
