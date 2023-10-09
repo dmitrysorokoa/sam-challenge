@@ -238,12 +238,12 @@ const runRandomEvent = () => {
     eventsMap[event]();
   } else {
     console.log('dont have available events');
-    // io.emit('vote end');
   }
 };
 
 let eventGeneratorTimerId: NodeJS.Timeout;
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const config = require('platformsh-config').config();
 
 const port = !config.isValidPlatform() ? 3003 : config.port;
@@ -334,8 +334,10 @@ io.on('connection', (socket) => {
       }, num * 1000);
     });
 
+    return;
+
     eventGeneratorTimerId = setInterval(() => {
-      // runRandomEvent();
+      runRandomEvent();
     }, 25);
   });
 
