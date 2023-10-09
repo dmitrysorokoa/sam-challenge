@@ -248,7 +248,7 @@ const config = require('platformsh-config').config();
 
 const port = !config.isValidPlatform() ? 3003 : config.port;
 
-app.use(express.static(path.join(__dirname, '..', 'dist-back')));
+app.use(express.static(path.join(__dirname, '..', 'dist')));
 app.use(express.static('public'));
 
 app.get('/api/distributions', (req: Request, res: Response) => {
@@ -265,7 +265,7 @@ app.get('/api/users', (req: Request, res: Response) => {
 });
 
 app.use((req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', 'dist-back', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
 });
 
 let createEventsTimers: NodeJS.Timeout[] = [];
