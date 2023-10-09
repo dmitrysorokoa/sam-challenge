@@ -9,7 +9,7 @@ module.exports = {
   mode: NODE_ENV,
   target: 'node',
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'dist-back'),
     filename: 'index.js',
   },
   resolve: {

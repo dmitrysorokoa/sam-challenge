@@ -12,9 +12,7 @@ type: 'nodejs:20'
 hooks:
   build: |
     npm run build
-    cd client
-    npm i
-    npm run build
+    npm run build:back
 
 
 # dependencies:
@@ -35,4 +33,4 @@ disk: 2048
 
 web:
   commands: 
-    start: "npm run start"
+    start: "npm run start:back"

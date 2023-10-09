@@ -40,27 +40,27 @@ export const options: any = {
 
 const sendRequest = async (url: string) => {
   const response = await fetch(`${serverUrl}${url}`);
-    const body = await response.json();
+  const body = await response.json();
 
-    if (response.status !== 200) {
-      throw Error(body.message)
-    }
+  if (response.status !== 200) {
+    throw Error(body.message);
+  }
 
-    return body;
-}
+  return body;
+};
 
 const createChartData = (data: any) => {
   return {
     labels: data.labels,
-        datasets: [
-          {
-            label: 'Dataset 1',
-            data: data.data,
-            backgroundColor: 'rgba(0, 255, 0, 0.5)',
-          },
-        ],
-  }
-}
+    datasets: [
+      {
+        label: 'Dataset 1',
+        data: data.data,
+        backgroundColor: 'rgba(0, 255, 0, 0.5)',
+      },
+    ],
+  };
+};
 
 function App() {
   const [chartLinear, setChartLinear] = useState<any>(null);
@@ -77,17 +77,15 @@ function App() {
 
   const getDistributions = async () => {
     try {
-      const body = await sendRequest('/api/distributions')
-      setChartLinear(createChartData(body.linear.chartData))
-      setChartNormal(createChartData(body.normal.chartData))
-      setChartExp(createChartData(body.exp.chartData))
-      setChartBernoulli(createChartData(body.bernoulli.chartData))
+      const body = await sendRequest('/api/distributions');
+      setChartLinear(createChartData(body.linear.chartData));
+      setChartNormal(createChartData(body.normal.chartData));
+      setChartExp(createChartData(body.exp.chartData));
+      setChartBernoulli(createChartData(body.bernoulli.chartData));
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
   };
-
-
 
   useEffect(() => {
     socket.emit('vote status');
@@ -113,7 +111,7 @@ function App() {
     }
 
     function onFooEvent(value: any) {
-      setFooEvents(previous => [...previous, value]);
+      setFooEvents((previous) => [...previous, value]);
 
       // if (listRef.current) {
       //   const threshold = 50
@@ -122,13 +120,13 @@ function App() {
 
       //   if (isNearBottom) {
       //     listRef.current.scrollTo(0, listRef.current?.scrollHeight);
-      //   } 
+      //   }
       // }
     }
 
     function onVoteStart() {
       setVoteStatus(true);
-      setFooEvents([])
+      setFooEvents([]);
       setVoteResult(null);
     }
 
@@ -165,49 +163,63 @@ function App() {
 
   useEffect(() => {
     getDistributions();
-  }, [])
+  }, []);
 
   return (
     <div className={styles.app}>
       Pros And Cons Of Living In Australia
-      <p>Connected to server: { '' + isConnected }</p>
-      <p>Vote started: { '' + voteStatus }</p>
-      <ConnectionManager voteStatus={voteStatus}/>
-      <p>Vote time: { '' + (voteResult?.time || '0:0') }</p>
-      <p>Votes count: { '' + (voteResult?.voteCount || 0) }</p>
+      <p>Connected to server: {'' + isConnected}</p>
+      <p>Vote started: {'' + voteStatus}</p>
+      <ConnectionManager voteStatus={voteStatus} />
+      <p>Vote time: {'' + (voteResult?.time || '0:0')}</p>
+      <p>Votes count: {'' + (voteResult?.voteCount || 0)}</p>
       <MyForm voteStatus={voteStatus} />
       <div className={styles.wrap}>
         <ul ref={listRef} className={styles.list}>
-          {
-            fooEvents.slice(-1000).map((event) =>
-              <li key={ event.id }>{ event.message }</li>
-            )
-          }
+          {fooEvents.slice(-1000).map((event) => (
+            <li key={event.id}>{event.message}</li>
+          ))}
         </ul>
-        {voteResult && 
+        {voteResult && (
           <div className={styles.resultContainer}>
-            {!!voteResult.pros?.length &&
+            {!!voteResult.pros?.length && (
               <ul>
-                {voteResult.pros.map((pro: any) => 
+                {voteResult.pros.map((pro: any) => (
                   <Element {...pro} type={'pro'} voteStatus={voteStatus} />
-                )}
-              </ul> 
-            }
-            {!!voteResult.cons?.length &&
+                ))}
+              </ul>
+            )}
+            {!!voteResult.cons?.length && (
               <ul>
-                {voteResult.cons.map((con: any) => 
+                {voteResult.cons.map((con: any) => (
                   <Element {...con} type={'con'} voteStatus={voteStatus} />
-                )}
-              </ul> 
-            }
+                ))}
+              </ul>
+            )}
           </div>
-        }
+        )}
       </div>
       <div className={styles.charts}>
-        {chartLinear && <div className={styles.chartContainer}><Bar options={options} data={chartLinear} /></div>}
-        {chartNormal && <div className={styles.chartContainer}><Bar options={options} data={chartNormal} /></div>}
-        {chartExp && <div className={styles.chartContainer}><Bar options={options} data={chartExp} /></div>}
-        {chartBernoulli && <div className={styles.chartContainer}><Bar options={options} data={chartBernoulli} /></div>}
+        {chartLinear && (
+          <div className={styles.chartContainer}>
+            <Bar options={options} data={chartLinear} />
+          </div>
+        )}
+        {chartNormal && (
+          <div className={styles.chartContainer}>
+            <Bar options={options} data={chartNormal} />
+          </div>
+        )}
+        {chartExp && (
+          <div className={styles.chartContainer}>
+            <Bar options={options} data={chartExp} />
+          </div>
+        )}
+        {chartBernoulli && (
+          <div className={styles.chartContainer}>
+            <Bar options={options} data={chartBernoulli} />
+          </div>
+        )}
       </div>
     </div>
   );

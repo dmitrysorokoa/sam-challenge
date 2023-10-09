@@ -1,43 +1,75 @@
 {
-  "name": "sam-challenge",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "build": "webpack",
-    "start": "node dist/index.js",
-    "dev": "concurrently \"npm run start:dev\" \"cd client && npm run start\"",
-    "webpack": "webpack",
-    "start:dev": "NODE_ENV=development webpack",
-    "run:dev": "nodemon dist/index.js",
-    "dev:back": "concurrently \"NODE_ENV=development webpack\" \"nodemon dist/index.js\""
-  },
-  "author": "",
-  "license": "ISC",
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.8.3",
+    "@types/react": "^18.2.25",
+    "@types/react-dom": "^18.2.11",
+    "@vitejs/plugin-react-swc": "^3.4.0",
+    "chart.js": "^4.4.0",
+    "classnames": "^2.3.2",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0",
+    "socket.io-client": "^4.7.2",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.11",
+    "vite-plugin-svgr": "^3.1.0",
+    "vite-tsconfig-paths": "^4.2.1",
+    "@types/chart.js": "^2.9.38",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "platformsh-config": "^2.4.1",
     "random": "^3.0.6",
-    "socket.io": "^4.7.2"
-  },
-  "devDependencies": {
+    "socket.io": "^4.7.2",
+    "sass": "^1.68.0",
     "@faker-js/faker": "^8.1.0",
     "@types/express": "^4.17.18",
-    "@types/node": "^20.7.1",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
     "concurrently": "^8.2.1",
     "eslint": "^8.50.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
-    "hook-shell-script-webpack-plugin": "^0.3.0",
     "nodemon": "^3.0.1",
     "prettier": "^3.0.3",
     "ts-loader": "^9.4.4",
-    "typescript": "^5.2.2",
     "webpack-cli": "^5.1.4",
-    "webpack-node-externals": "^3.0.0",
-    "webpack-shell-plugin-next": "^2.3.1"
+    "webpack-node-externals": "^3.0.0"
+  },
+  "scripts": {
+    "start": "PORT=3004 react-scripts start",
+    "build:old": "npm i && react-scripts build",
+    "fast:build": "react-scripts build",
+    "eject": "react-scripts eject",
+    "start:v": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview",
+    "build:back": "webpack",
+    "start:back": "node dist-back/index.js",
+    "dev:back": "concurrently \"NODE_ENV=development webpack\" \"nodemon dist-back/index.js\""
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

@@ -4,7 +4,7 @@ const getLinearDistribution = (count: number, a = 0, b = 300) => {
   const etalonExpectedValue = (a + 2 * b) / 3;
   const etalonVariance = Math.pow(b - a, 2) / 18;
 
-  const nums = [];
+  const nums: any = [];
 
   for (let i = 0; i < count; i++) {
     const r = Math.max(Math.random(), Math.random());
@@ -36,7 +36,7 @@ function intFromInterval(value: number, min = 0, max = 300) {
 }
 
 const getNormalDistribution = (count: number) => {
-  const nums = [];
+  const nums: any = [];
 
   for (let i = 0; i < count; i++) {
     nums.push(getNormalDistributionNumber());
@@ -46,7 +46,7 @@ const getNormalDistribution = (count: number) => {
 };
 
 const getExponentialDistribution = (count: number) => {
-  const nums = [];
+  const nums: any = [];
 
   const lambda = 7;
 
@@ -64,7 +64,7 @@ const getExponentialDistribution = (count: number) => {
 };
 
 export const getLogNormalDistribution = (count: number) => {
-  const nums = [];
+  const nums: any = [];
 
   const logNormal = random.logNormal(0, 0.9);
 
@@ -73,7 +73,7 @@ export const getLogNormalDistribution = (count: number) => {
   }
 
   return {
-    nums: nums.filter((el) => el < 300 && el > 0),
+    nums: nums.filter((el: number) => el < 300 && el > 0),
     etalonExpectedValue: 0,
     etalonVariance: 0,
   };
@@ -120,11 +120,12 @@ export const getDistribution = (type: Distribution, count = 100000) => {
   const { nums, etalonExpectedValue, etalonVariance } =
     distributionMap[type](count);
 
-  const sum = nums.reduce((acc, el) => acc + el, 0);
+  const sum = nums.reduce((acc: number, el: number) => acc + el, 0);
   const calculatedExpectedValue = sum / count;
 
   const dSUM = nums.reduce(
-    (acc, el) => acc + Math.pow(el - calculatedExpectedValue, 2),
+    (acc: number, el: number) =>
+      acc + Math.pow(el - calculatedExpectedValue, 2),
     0,
   );
   const calculatedVariance = dSUM / count;

@@ -23,16 +23,21 @@ export const MyForm: FC<MyFormProps> = ({ voteStatus }) => {
   }
 
   return (
-    <form className={styles.container} onSubmit={ onSubmit }>
+    <form className={styles.container} onSubmit={onSubmit}>
       con
       <label className={styles.switch}>
-        <input type="checkbox" checked={type === 'pro'} onChange={ e => setType(e.target.checked ? 'pro' : 'con') }/>
+        <input
+          type="checkbox"
+          checked={type === 'pro'}
+          onChange={(e) => setType(e.target.checked ? 'pro' : 'con')}
+        />
         <span className={styles.slider}></span>
       </label>
       pro
-      <input value={value} onChange={ e => setValue(e.target.value) } />
-
-      <button type="submit" disabled={ isLoading || !voteStatus }>Submit</button>
+      <input value={value} onChange={(e) => setValue(e.target.value)} />
+      <button type="submit" disabled={isLoading || !voteStatus}>
+        Submit
+      </button>
     </form>
   );
-}
+};

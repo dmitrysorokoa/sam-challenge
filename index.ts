@@ -104,7 +104,7 @@ const convertMillisecondsInTime = (value: number, withMiliseconds = true) => {
 };
 
 const getAvailableEvents = () => {
-  const events = [];
+  const events: any[] = [];
 
   if (
     (votingData?.createdPros.length || votingData?.createdCons.length) &&
@@ -218,7 +218,7 @@ const createProEvent = (text?: string) => {
   });
 };
 
-const eventsMap = {
+const eventsMap: any = {
   [EventType.CreateCon]: createConEvent,
   [EventType.CreatePro]: createProEvent,
   [EventType.Like]: likeEvent,
@@ -248,7 +248,7 @@ const config = require('platformsh-config').config();
 
 const port = !config.isValidPlatform() ? 3003 : config.port;
 
-app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
+app.use(express.static(path.join(__dirname, '..', 'dist-back')));
 app.use(express.static('public'));
 
 app.get('/api/distributions', (req: Request, res: Response) => {
@@ -265,7 +265,7 @@ app.get('/api/users', (req: Request, res: Response) => {
 });
 
 app.use((req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'dist-back', 'index.html'));
 });
 
 let createEventsTimers: NodeJS.Timeout[] = [];
@@ -301,7 +301,7 @@ io.on('connection', (socket) => {
     console.log(nums.length);
     console.log(array);
 
-    voteEventsTimers = nums.map((el) => {
+    voteEventsTimers = nums.map((el: number) => {
       return setTimeout(
         () => {
           const events = [EventType.Dislike, EventType.Like];
