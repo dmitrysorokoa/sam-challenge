@@ -11,7 +11,11 @@ type: 'nodejs:20'
 
 hooks:
   build: |
-    npm run build 
+    npm run build
+    cd client
+    npm i
+    npm run build
+
 
 # dependencies:
 #   nodejs:

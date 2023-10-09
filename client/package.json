@@ -34,7 +34,7 @@
     "fast:build": "react-scripts build",
     "eject": "react-scripts eject",
     "start:v": "vite",
-    "build": "npm i & tsc && vite build",
+    "build": "tsc && vite build",
     "serve": "vite preview"
   },
   "eslintConfig": {
