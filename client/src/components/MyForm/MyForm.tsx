@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, FC, SyntheticEvent } from 'react';
 import styles from './MyForm.module.scss';
 import { socket } from '../../socket';
 
-export function MyForm({ voteStatus }) {
+interface MyFormProps {
+  voteStatus: boolean | null;
+}
+
+export const MyForm: FC<MyFormProps> = ({ voteStatus }) => {
   const [value, setValue] = useState('');
   const [type, setType] = useState('pro');
   const [isLoading, setIsLoading] = useState(false);
 
-  function onSubmit(event) {
+  function onSubmit(event: SyntheticEvent) {
     event.preventDefault();
     setIsLoading(true);
 

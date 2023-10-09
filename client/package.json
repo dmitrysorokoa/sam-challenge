@@ -6,6 +6,10 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.8.3",
+    "@types/react": "^18.2.25",
+    "@types/react-dom": "^18.2.11",
     "chart.js": "^4.4.0",
     "classnames": "^2.3.2",
     "react": "^18.2.0",
@@ -13,7 +17,11 @@
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
     "socket.io-client": "^4.7.2",
+    "typescript": "^5.2.2",
     "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "sass": "^1.68.0"
   },
   "scripts": {
     "start": "PORT=3004 react-scripts start",
@@ -39,8 +47,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:3003",
-  "devDependencies": {
-    "sass": "^1.68.0"
-  }
+  "proxy": "http://localhost:3003"
 }

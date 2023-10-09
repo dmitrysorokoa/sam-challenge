@@ -28,7 +28,7 @@ ChartJS.register(
   LineElement,
 );
 
-export const options = {
+export const options: any = {
   responsive: true,
   plugins: {
     legend: {
@@ -37,7 +37,7 @@ export const options = {
   },
 };
 
-const sendRequest = async (url) => {
+const sendRequest = async (url: string) => {
   const response = await fetch(url);
     const body = await response.json();
 
@@ -48,7 +48,7 @@ const sendRequest = async (url) => {
     return body;
 }
 
-const createChartData = (data) => {
+const createChartData = (data: any) => {
   return {
     labels: data.labels,
         datasets: [
@@ -62,17 +62,17 @@ const createChartData = (data) => {
 }
 
 function App() {
-  const [chartLinear, setChartLinear] = useState(null);
-  const [chartNormal, setChartNormal] = useState(null);
-  const [chartExp, setChartExp] = useState(null);
-  const [chartBernoulli, setChartBernoulli] = useState(null);
+  const [chartLinear, setChartLinear] = useState<any>(null);
+  const [chartNormal, setChartNormal] = useState<any>(null);
+  const [chartExp, setChartExp] = useState<any>(null);
+  const [chartBernoulli, setChartBernoulli] = useState<any>(null);
 
-  const [isConnected, setIsConnected] = useState(socket.connected);
-  const [voteStatus, setVoteStatus] = useState(null);
-  const [voteResult, setVoteResult] = useState(null);
-  const [fooEvents, setFooEvents] = useState([]);
+  const [isConnected, setIsConnected] = useState<boolean>(socket.connected);
+  const [voteStatus, setVoteStatus] = useState<boolean | null>(null);
+  const [voteResult, setVoteResult] = useState<any>(null);
+  const [fooEvents, setFooEvents] = useState<any[]>([]);
 
-  const listRef = useRef();
+  const listRef = useRef<HTMLUListElement>(null);
 
   const getDistributions = async () => {
     try {
@@ -93,7 +93,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    let interval;
+    let interval: NodeJS.Timeout;
     if (voteStatus) {
       interval = setInterval(() => {
         socket.emit('vote result');
@@ -111,7 +111,7 @@ function App() {
       setIsConnected(false);
     }
 
-    function onFooEvent(value) {
+    function onFooEvent(value: any) {
       setFooEvents(previous => [...previous, value]);
 
       // if (listRef.current) {
@@ -135,11 +135,11 @@ function App() {
       setVoteStatus(false);
     }
 
-    function onVoteStatus(value) {
+    function onVoteStatus(value: boolean) {
       setVoteStatus(value);
     }
 
-    function onVoteResult(value) {
+    function onVoteResult(value: any) {
       setVoteResult(value);
     }
 
@@ -168,6 +168,7 @@ function App() {
 
   return (
     <div className={styles.app}>
+      Pros And Cons Of Living In Australia
       <p>Connected to server: { '' + isConnected }</p>
       <p>Vote started: { '' + voteStatus }</p>
       <ConnectionManager voteStatus={voteStatus}/>
@@ -186,14 +187,14 @@ function App() {
           <div className={styles.resultContainer}>
             {!!voteResult.pros?.length &&
               <ul>
-                {voteResult.pros.map(pro => 
+                {voteResult.pros.map((pro: any) => 
                   <Element {...pro} type={'pro'} voteStatus={voteStatus} />
                 )}
               </ul> 
             }
             {!!voteResult.cons?.length &&
               <ul>
-                {voteResult.cons.map(con => 
+                {voteResult.cons.map((con: any) => 
                   <Element {...con} type={'con'} voteStatus={voteStatus} />
                 )}
               </ul> 

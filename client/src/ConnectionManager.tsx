@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { FC } from 'react';
 import { socket } from './socket';
 
-export function ConnectionManager({voteStatus}) {
+interface ConnectionManagerProps {
+  voteStatus: boolean | null;
+}
+
+export const ConnectionManager: FC<ConnectionManagerProps> = ({ voteStatus }) => {
   function connect() {
     socket.connect();
   }
