@@ -23,6 +23,9 @@
   "devDependencies": {
     "sass": "^1.68.0"
   },
+  "overrides": {
+    "typescript": "^5.2.2"
+  },
   "scripts": {
     "start": "PORT=3004 react-scripts start",
     "build": "npm i && react-scripts build",
