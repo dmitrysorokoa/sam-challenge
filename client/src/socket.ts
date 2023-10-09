@@ -1,5 +1,4 @@
 import { io } from 'socket.io-client';
+import { serverUrl } from './constants';
 
-const URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3003';
-
-export const socket = io(URL);
+export const socket = io(serverUrl);

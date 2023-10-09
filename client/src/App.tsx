@@ -10,6 +10,7 @@ import {
   PointElement,
   LineElement,
 } from 'chart.js';
+import { serverUrl } from './constants';
 import { socket } from './socket';
 import { Bar } from 'react-chartjs-2';
 import styles from './App.module.scss';
@@ -38,7 +39,7 @@ export const options: any = {
 };
 
 const sendRequest = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(`${serverUrl}${url}`);
     const body = await response.json();
 
     if (response.status !== 200) {

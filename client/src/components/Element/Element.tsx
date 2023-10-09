@@ -1,9 +1,9 @@
 import React, { useState, FC } from 'react';
 import classNames from 'classnames';
-import { ReactComponent as LikeFilled } from '../../assets/likeFilled.svg';
-import { ReactComponent as Like } from '../../assets/like.svg';
-import { ReactComponent as DislikeFilled } from '../../assets/dislikeFilled.svg';
-import { ReactComponent as Dislike } from '../../assets/dislike.svg';
+import LikeFilled from "../../assets/likeFilled.svg";
+import Like from "../../assets/like.svg";
+import DislikeFilled from "../../assets/dislikeFilled.svg";
+import Dislike from "../../assets/dislike.svg";
 import { socket } from '../../socket';
 import styles from './Element.module.scss';
 
@@ -44,9 +44,8 @@ export const Element: FC<ElementProps> = ({ id, title, type, likes, dislikes, vo
   return (
     <li className={classNames(styles.container, styles[type])} key={title}>
       <span>{title}</span>
-        {isLiked ? <LikeFilled /> : <Like onClick={onLike} /> } {likes}
-        <div className={styles.delimiter}/>
-        {isDisliked ? <DislikeFilled /> : <Dislike onClick={onDislike} /> } {dislikes}
+      <img src={isLiked ? LikeFilled : Like} onClick={onLike} />  {likes}
+      <img src={isDisliked ? DislikeFilled : Dislike} onClick={onDislike} /> {dislikes}
     </li>
   );
 }
