@@ -57,7 +57,7 @@ const initVoting = () => {
     createdCons: [],
     voteCount: 0,
     startDate: Date.now(),
-    time: '0:0',
+    time: '00:00',
   };
 };
 
@@ -66,6 +66,7 @@ interface ProConElement {
   title: string;
   likes: number;
   dislikes: number;
+  type: string;
 }
 
 let votingData:
@@ -97,9 +98,18 @@ const io = new Server(server, {
 });
 
 const convertMillisecondsInTime = (value: number, withMiliseconds = true) => {
-  const min = Math.floor((value / 1000 / 60) << 0);
-  const sec = Math.floor((value / 1000) % 60);
-  const milliseconds = value % 1000;
+  let min = String(Math.floor((value / 1000 / 60) << 0));
+  let sec = String(Math.floor((value / 1000) % 60));
+  let milliseconds = String(value % 1000);
+  if (min.length === 1) {
+    min = `${min.length === 1 ? '0' : ''}${min}`;
+  }
+  if (sec.length === 1) {
+    sec = `${sec.length === 1 ? '0' : ''}${sec}`;
+  }
+  while (milliseconds.length < 3) {
+    milliseconds = `0${milliseconds}`;
+  }
   return `${min}:${sec}${withMiliseconds ? `.${milliseconds}` : ''}`;
 };
 
@@ -144,9 +154,10 @@ const likeEvent = (selectedElement?: ProConElement) => {
 
   io.emit('chat message', {
     id: faker.string.uuid(),
-    message: `${convertMillisecondsInTime(
-      Date.now() - votingData.startDate,
-    )} like: ${element.title}`,
+    event: EventType.Like,
+    elementType: element.type,
+    time: convertMillisecondsInTime(Date.now() - votingData.startDate),
+    title: element.title,
   });
 };
 
@@ -163,9 +174,10 @@ const dislikeEvent = (selectedElement?: ProConElement) => {
 
   io.emit('chat message', {
     id: faker.string.uuid(),
-    message: `${convertMillisecondsInTime(
-      Date.now() - votingData.startDate,
-    )} dislike: ${element.title}`,
+    event: EventType.Dislike,
+    elementType: element.type,
+    time: convertMillisecondsInTime(Date.now() - votingData.startDate),
+    title: element.title,
   });
 };
 
@@ -187,13 +199,15 @@ const createConEvent = (text?: string) => {
     title: selecteCon,
     likes: 0,
     dislikes: 0,
+    type: 'con',
   });
 
   io.emit('chat message', {
     id: faker.string.uuid(),
-    message: `${convertMillisecondsInTime(
-      Date.now() - votingData.startDate,
-    )} create con: ${selecteCon}`,
+    event: EventType.CreateCon,
+    elementType: 'con',
+    time: convertMillisecondsInTime(Date.now() - votingData.startDate),
+    title: selecteCon,
   });
 };
 
@@ -208,13 +222,15 @@ const createProEvent = (text?: string) => {
     title: selectePro,
     likes: 0,
     dislikes: 0,
+    type: 'pro',
   });
 
   io.emit('chat message', {
     id: faker.string.uuid(),
-    message: `${convertMillisecondsInTime(
-      Date.now() - votingData.startDate,
-    )} create pro: ${selectePro}`,
+    event: EventType.CreatePro,
+    elementType: 'pro',
+    time: convertMillisecondsInTime(Date.now() - votingData.startDate),
+    title: selectePro,
   });
 };
 
@@ -315,7 +331,7 @@ io.on('connection', (socket) => {
             console.log('error');
           }
         },
-        Math.abs(el - 300) * 1000,
+        Math.abs(el - 300000),
       );
     });
 
@@ -331,7 +347,7 @@ io.on('connection', (socket) => {
         } else {
           console.log('error');
         }
-      }, num * 1000);
+      }, num);
     });
 
     return;
@@ -371,7 +387,7 @@ io.on('connection', (socket) => {
       voteCount: votingData?.voteCount,
       time: votingData
         ? convertMillisecondsInTime(Date.now() - votingData.startDate, false)
-        : '0:0',
+        : '00:00',
     });
   });
 

@@ -1,0 +1,24 @@
+.container {
+  height: 30px;
+  align-items: center;
+  padding: 5px;
+  display: flex;
+  gap: 5px;
+}
+
+.pro, .con, .like, .dislike {
+  align-self: stretch;
+  color: white;
+  border-radius: 5px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+}
+
+.con, .dislike {
+  background-color: red;
+}
+
+.pro, .like {
+  background-color: green;
+}

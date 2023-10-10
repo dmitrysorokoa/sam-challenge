@@ -1,6 +1,6 @@
 import random from 'random';
 
-const getLinearDistribution = (count: number, a = 0, b = 300) => {
+const getLinearDistribution = (count: number, a = 0, b = 300000) => {
   const etalonExpectedValue = (a + 2 * b) / 3;
   const etalonVariance = Math.pow(b - a, 2) / 18;
 
@@ -14,7 +14,11 @@ const getLinearDistribution = (count: number, a = 0, b = 300) => {
   return { nums, etalonExpectedValue, etalonVariance };
 };
 
-export const getNormalDistributionNumber = (min = 0, max = 300, skew = 1) => {
+export const getNormalDistributionNumber = (
+  min = 0,
+  max = 300000,
+  skew = 1,
+) => {
   let u = 0,
     v = 0;
   while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
@@ -31,7 +35,7 @@ export const getNormalDistributionNumber = (min = 0, max = 300, skew = 1) => {
   return num;
 };
 
-function intFromInterval(value: number, min = 0, max = 300) {
+function intFromInterval(value: number, min = 0, max = 300000) {
   return Math.floor(value * (max - min + 1) + min);
 }
 
@@ -73,7 +77,7 @@ export const getLogNormalDistribution = (count: number) => {
   }
 
   return {
-    nums: nums.filter((el: number) => el < 300 && el > 0),
+    nums: nums.filter((el: number) => el < 300000 && el > 0),
     etalonExpectedValue: 0,
     etalonVariance: 0,
   };
@@ -95,8 +99,8 @@ const distributionMap = {
 
 const getChartData = (nums: number[]) => {
   const min = 0,
-    max = 300,
-    step = 10;
+    max = 300000,
+    step = 100;
 
   const count = Math.ceil((max - min) / step);
   const data = new Array(count).fill(0);

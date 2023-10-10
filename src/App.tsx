@@ -17,6 +17,7 @@ import styles from './App.module.scss';
 import { ConnectionManager } from './ConnectionManager';
 import { MyForm } from './components/MyForm/MyForm';
 import { Element } from './components/Element/Element';
+import { Message } from './components/Message/Message';
 
 ChartJS.register(
   CategoryScale,
@@ -71,7 +72,7 @@ function App() {
   const [isConnected, setIsConnected] = useState<boolean>(socket.connected);
   const [voteStatus, setVoteStatus] = useState<boolean | null>(null);
   const [voteResult, setVoteResult] = useState<any>(null);
-  const [fooEvents, setFooEvents] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
 
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -111,7 +112,7 @@ function App() {
     }
 
     function onFooEvent(value: any) {
-      setFooEvents((previous) => [...previous, value]);
+      setMessages((previous) => [...previous, value]);
 
       // if (listRef.current) {
       //   const threshold = 50
@@ -126,7 +127,7 @@ function App() {
 
     function onVoteStart() {
       setVoteStatus(true);
-      setFooEvents([]);
+      setMessages([]);
       setVoteResult(null);
     }
 
@@ -139,6 +140,8 @@ function App() {
     }
 
     function onVoteResult(value: any) {
+      value.pros.sort((a: any, b: any) => a.likes - b.likes);
+      value.cons.sort((a: any, b: any) => a.likes - b.likes);
       setVoteResult(value);
     }
 
@@ -171,13 +174,13 @@ function App() {
       <p>Connected to server: {'' + isConnected}</p>
       <p>Vote started: {'' + voteStatus}</p>
       <ConnectionManager voteStatus={voteStatus} />
-      <p>Vote time: {'' + (voteResult?.time || '0:0')}</p>
+      <p>Vote time: {'' + (voteResult?.time || '00:00')}</p>
       <p>Votes count: {'' + (voteResult?.voteCount || 0)}</p>
       <MyForm voteStatus={voteStatus} />
       <div className={styles.wrap}>
         <ul ref={listRef} className={styles.list}>
-          {fooEvents.slice(-1000).map((event) => (
-            <li key={event.id}>{event.message}</li>
+          {messages.slice(-1000).map((message) => (
+            <Message key={message.id} {...message} />
           ))}
         </ul>
         {voteResult && (
@@ -185,14 +188,24 @@ function App() {
             {!!voteResult.pros?.length && (
               <ul>
                 {voteResult.pros.map((pro: any) => (
-                  <Element {...pro} type={'pro'} voteStatus={voteStatus} />
+                  <Element
+                    key={pro.id}
+                    {...pro}
+                    type={'pro'}
+                    voteStatus={voteStatus}
+                  />
                 ))}
               </ul>
             )}
             {!!voteResult.cons?.length && (
               <ul>
                 {voteResult.cons.map((con: any) => (
-                  <Element {...con} type={'con'} voteStatus={voteStatus} />
+                  <Element
+                    key={con.id}
+                    {...con}
+                    type={'con'}
+                    voteStatus={voteStatus}
+                  />
                 ))}
               </ul>
             )}
