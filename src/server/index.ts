@@ -79,7 +79,7 @@ const voteStartHandler = () => {
 
   storage.voteEndTimer = setTimeout(voteEndHandler, 300000);
 
-  const nums = getLogNormalDistribution(10000).nums;
+  const nums = getLogNormalDistribution(12000).nums;
 
   const array = Array(20)
     .fill(0)
