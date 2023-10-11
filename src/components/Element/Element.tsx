@@ -1,16 +1,17 @@
 import React, { useState, FC } from 'react';
-import classNames from 'classnames';
-import LikeFilled from '../../assets/likeFilled.svg';
-import Like from '../../assets/like.svg';
-import DislikeFilled from '../../assets/dislikeFilled.svg';
-import Dislike from '../../assets/dislike.svg';
+import { useTheme } from '@mui/material/styles';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
+import ThumbDownOffAltIcon from '@mui/icons-material/ThumbDownOffAlt';
 import { socket } from '../../socket';
-import styles from './Element.module.scss';
+import Typography from '@mui/material/Typography';
+import { CardActions, Chip, CardContent, Card } from '@mui/material';
 
 interface ElementProps {
   id: string;
   title: string;
-  type: string;
+  type: 'pro' | 'con';
   likes: number;
   dislikes: number;
   voteStatus: boolean | null;
@@ -27,6 +28,8 @@ export const Element: FC<ElementProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
+
+  const theme = useTheme();
 
   function onLike() {
     if (isLoading || !voteStatus) return;
@@ -49,14 +52,38 @@ export const Element: FC<ElementProps> = ({
   }
 
   return (
-    <li className={classNames(styles.container, styles[type])} key={title}>
-      <span>{title}</span>
-      <img src={isLiked ? LikeFilled : Like} onClick={onLike} /> {likes}
-      <img
-        src={isDisliked ? DislikeFilled : Dislike}
-        onClick={onDislike}
-      />{' '}
-      {dislikes}
-    </li>
+    <Card
+      sx={{
+        marginBottom: 2,
+        userSelect: 'none',
+      }}
+    >
+      <CardContent
+        sx={{
+          padding: 1,
+          width: '300px',
+          backgroundColor:
+            type === 'pro'
+              ? theme.palette.success.light
+              : theme.palette.error.light,
+        }}
+      >
+        <Typography variant="body1">{title}</Typography>
+      </CardContent>
+      <CardActions>
+        <Chip
+          onClick={onLike}
+          clickable={!!(!isLiked && voteStatus)}
+          label={likes}
+          icon={isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+        />
+        <Chip
+          onClick={onDislike}
+          clickable={!!(!isDisliked && voteStatus)}
+          label={dislikes}
+          icon={isDisliked ? <ThumbDownAltIcon /> : <ThumbDownOffAltIcon />}
+        />
+      </CardActions>
+    </Card>
   );
 };

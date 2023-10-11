@@ -1,11 +1,10 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
-// const HookShellScriptPlugin = require('hook-shell-script-webpack-plugin');
 
 const { NODE_ENV = 'production' } = process.env;
 
 module.exports = {
-  entry: './index.ts',
+  entry: './src/server/index.ts',
   mode: NODE_ENV,
   target: 'node',
   output: {
@@ -23,19 +22,6 @@ module.exports = {
       },
     ],
   },
-  plugins: [
-    // new WebpackShellPluginNext({
-    //   onBuildEnd: {
-    //     scripts: ['npm run run:dev'],
-    //     blocking: true,
-    //     parallel: false
-    //   }
-    // }),
-    // NODE_ENV === 'development' &&
-    //   new HookShellScriptPlugin({
-    //     afterEmit: ['npm run run:dev'],
-    //   }),
-  ],
   externals: [nodeExternals()],
   watch: NODE_ENV === 'development',
   watchOptions: {

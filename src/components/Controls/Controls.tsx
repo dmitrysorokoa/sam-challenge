@@ -33,16 +33,16 @@ export const Controls: FC<ControlsProps> = ({
   };
 
   return (
-    <div className={styles.controlContainer}>
+    <div>
       <div className={styles.controlInfo}>
         <Typography variant="subtitle1" gutterBottom>
           {time}
         </Typography>
+        <Divider orientation="vertical" flexItem />
         <Typography variant="subtitle1" gutterBottom>
           {votesCount}
         </Typography>
       </div>
-      <Divider orientation="vertical" flexItem />
       <div className={styles.container}>
         <Typography variant="body1">Con</Typography>
         <Switch
@@ -51,12 +51,14 @@ export const Controls: FC<ControlsProps> = ({
         />
         <Typography variant="body1">Pro</Typography>
         <TextField
+          sx={{ width: '100%' }}
           size="small"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           label="Pro/Con text"
           variant="outlined"
           disabled={isLoading || !voteStatus}
+          inputProps={{ maxLength: 20 }}
         />
         <Button
           disabled={isLoading || !voteStatus}

@@ -87,14 +87,14 @@ export enum Distribution {
   Normal,
   Linear,
   Exp,
-  Bernoulli,
+  LogNormal,
 }
 
 const distributionMap = {
   [Distribution.Normal]: getNormalDistribution,
   [Distribution.Linear]: getLinearDistribution,
   [Distribution.Exp]: getExponentialDistribution,
-  [Distribution.Bernoulli]: getLogNormalDistribution,
+  [Distribution.LogNormal]: getLogNormalDistribution,
 };
 
 const getChartData = (nums: number[]) => {

@@ -8,16 +8,24 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import logoUrl from '../../assets/logo.png';
 import { ConnectionManager } from '../ConnectionManager/ConnectionManager';
+import { Button } from '@mui/material';
+import { Charts } from '../Charts/Charts';
 
 interface HeaderProps {
   voteStatus: boolean | null;
   isConnected: boolean;
+  votesChart: { time: string[]; votes: number[] };
 }
 
-export const Header: FC<HeaderProps> = ({ voteStatus, isConnected }) => {
+export const Header: FC<HeaderProps> = ({
+  voteStatus,
+  isConnected,
+  votesChart,
+}) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isChartsOpen, setIsChartsOpen] = useState(false);
 
-  const toggleDrawer =
+  const toggleMenu =
     (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
       if (
         event.type === 'keydown' &&
@@ -30,6 +38,19 @@ export const Header: FC<HeaderProps> = ({ voteStatus, isConnected }) => {
       setIsMenuOpen(open);
     };
 
+  const toggleCharts =
+    (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+      if (
+        event.type === 'keydown' &&
+        ((event as React.KeyboardEvent).key === 'Tab' ||
+          (event as React.KeyboardEvent).key === 'Shift')
+      ) {
+        return;
+      }
+
+      setIsChartsOpen(open);
+    };
+
   return (
     <>
       <AppBar position="static">
@@ -40,7 +61,7 @@ export const Header: FC<HeaderProps> = ({ voteStatus, isConnected }) => {
             color="inherit"
             aria-label="menu"
             sx={{ mr: 2 }}
-            onClick={toggleDrawer(true)}
+            onClick={toggleMenu(true)}
           >
             <MenuIcon />
           </IconButton>
@@ -58,21 +79,34 @@ export const Header: FC<HeaderProps> = ({ voteStatus, isConnected }) => {
             component="div"
             sx={{ flexGrow: 1, marginLeft: 2 }}
           >
-            Code Battle
+            Pros And Cons Of Living In Australia
           </Typography>
+          <Button color="inherit" onClick={toggleCharts(true)}>
+            Charts
+          </Button>
         </Toolbar>
       </AppBar>
-      <Drawer anchor="left" open={isMenuOpen} onClose={toggleDrawer(false)}>
+      <Drawer anchor="left" open={isMenuOpen} onClose={toggleMenu(false)}>
         <Box
           sx={{ width: 250 }}
           role="presentation"
-          onClick={toggleDrawer(false)}
-          onKeyDown={toggleDrawer(false)}
+          onClick={toggleMenu(false)}
+          onKeyDown={toggleMenu(false)}
         >
           <ConnectionManager
             voteStatus={voteStatus}
             isConnected={isConnected}
           />
+        </Box>
+      </Drawer>
+      <Drawer anchor="right" open={isChartsOpen} onClose={toggleCharts(false)}>
+        <Box
+          sx={{ width: 800 }}
+          role="presentation"
+          onClick={toggleCharts(false)}
+          onKeyDown={toggleCharts(false)}
+        >
+          <Charts votesChart={votesChart} />
         </Box>
       </Drawer>
     </>

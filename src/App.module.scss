@@ -1,24 +1,6 @@
 .app {
   margin: 20px;
-}
-
-.wrap {
   display: flex;
   min-height: 700px;
-  gap: 20px;
-}
-
-.list {
-  border-radius: 5px;
-  border: 1px solid black;
-  width: 500px;
-  height: 600px;
-  overflow: auto;
-  padding: 20px;
-  list-style-type: none;
-}
-
-.resultContainer {
-  display: flex;
   gap: 20px;
 }

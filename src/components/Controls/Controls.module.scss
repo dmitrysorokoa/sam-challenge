@@ -1,15 +1,11 @@
 .container {
-  padding: 10px;
+  padding: 10px 0;
   display: flex;
   align-items: center;
   gap: 10px
 }
 
-.controlContainer {
+.controlInfo {
   display: flex;
   gap: 10px
-}
-
-.controlInfo {
-  width: 160px;
 }

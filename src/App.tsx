@@ -1,19 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Typography from '@mui/material/Typography';
+import React, { useEffect, useState } from 'react';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { socket } from './socket';
 import styles from './App.module.scss';
 import { Controls } from './components/Controls/Controls';
-import { Element } from './components/Element/Element';
-import { Message } from './components/Message/Message';
 import { Header } from './components/Header/Header';
+import { MessagesList } from './components/MessagesList/MessagesList';
+import { Result } from './components/Result/Result';
+import { Box } from '@mui/material';
+
+const theme = createTheme({});
 
 const App = () => {
   const [isConnected, setIsConnected] = useState<boolean>(socket.connected);
   const [voteStatus, setVoteStatus] = useState<boolean | null>(null);
-  const [voteResult, setVoteResult] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
-
-  const listRef = useRef<HTMLUListElement>(null);
+  const [createdProAndCons, setCreatedProAndCons] = useState<any>([]);
+  const [voteTime, setVoteTime] = useState<string>('00:00');
+  const [votesChart, setVotesChart] = useState<any>({ time: [], votes: [] });
+  const [showedMessages, setShowedMessages] = useState<any[]>([]);
 
   useEffect(() => {
     socket.emit('vote status');
@@ -30,6 +33,16 @@ const App = () => {
   }, [voteStatus]);
 
   useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (voteStatus) {
+      interval = setInterval(() => {
+        socket.emit('chat message');
+      }, 500);
+    }
+    return () => clearInterval(interval);
+  }, [voteStatus]);
+
+  useEffect(() => {
     function onConnect() {
       setIsConnected(true);
     }
@@ -38,24 +51,17 @@ const App = () => {
       setIsConnected(false);
     }
 
-    function onGetMessage(value: any) {
-      setMessages((previous) => [...previous, value]);
-
-      // if (listRef.current) {
-      //   const threshold = 50
-      //   const { scrollTop, scrollHeight, clientHeight } = listRef.current;
-      //   const isNearBottom = scrollTop + clientHeight + threshold >= scrollHeight;
-
-      //   if (isNearBottom) {
-      //     listRef.current.scrollTo(0, listRef.current?.scrollHeight);
-      //   }
-      // }
+    function onGetMessage(value: any[]) {
+      const last500 = value.slice(-500);
+      setShowedMessages(() => [...last500]);
     }
 
     function onVoteStart() {
+      setVotesChart({ time: [], votes: [] });
       setVoteStatus(true);
-      setMessages([]);
-      setVoteResult(null);
+      setShowedMessages([]);
+      setCreatedProAndCons([]);
+      setVoteTime('00:00');
     }
 
     function onVoteEnd() {
@@ -67,9 +73,20 @@ const App = () => {
     }
 
     function onVoteResult(value: any) {
-      value.pros.sort((a: any, b: any) => a.likes - b.likes);
-      value.cons.sort((a: any, b: any) => a.likes - b.likes);
-      setVoteResult(value);
+      value.createdProsAndCons.sort((a: any, b: any) => b.likes - a.likes);
+      setCreatedProAndCons(value.createdProsAndCons);
+      setVoteTime(value.time);
+      setVotesChart((previos: any) => {
+        const time = [...previos.time, value.time];
+        const votes = [
+          ...previos.votes,
+          value.createdProsAndCons.reduce(
+            (acc: number, el: any) => acc + el.likes + el.dislikes,
+            0,
+          ),
+        ];
+        return { time, votes };
+      });
     }
 
     socket.on('connect', onConnect);
@@ -92,54 +109,27 @@ const App = () => {
   }, []);
 
   return (
-    <>
-      <Header voteStatus={voteStatus} isConnected={isConnected} />
+    <ThemeProvider theme={theme}>
+      <Header
+        voteStatus={voteStatus}
+        isConnected={isConnected}
+        votesChart={votesChart}
+      />
       <div className={styles.app}>
-        <Typography variant="h6" gutterBottom>
-          Pros And Cons Of Living In Australia
-        </Typography>
-        <Controls
-          voteStatus={voteStatus}
-          time={`Vote time: ${voteResult?.time || '00:00'}`}
-          votesCount={`Votes count: ${voteResult?.voteCount || 0}`}
-        />
-        <div className={styles.wrap}>
-          <ul ref={listRef} className={styles.list}>
-            {messages.slice(-1000).map((message) => (
-              <Message key={message.id} {...message} />
-            ))}
-          </ul>
-          {voteResult && (
-            <div className={styles.resultContainer}>
-              {!!voteResult.pros?.length && (
-                <ul>
-                  {voteResult.pros.map((pro: any) => (
-                    <Element
-                      key={pro.id}
-                      {...pro}
-                      type={'pro'}
-                      voteStatus={voteStatus}
-                    />
-                  ))}
-                </ul>
-              )}
-              {!!voteResult.cons?.length && (
-                <ul>
-                  {voteResult.cons.map((con: any) => (
-                    <Element
-                      key={con.id}
-                      {...con}
-                      type={'con'}
-                      voteStatus={voteStatus}
-                    />
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
+        <Box>
+          <Controls
+            voteStatus={voteStatus}
+            time={`Vote time: ${voteTime}`}
+            votesCount={`Votes count: ${createdProAndCons.reduce(
+              (acc: number, el: any) => acc + el.likes + el.dislikes,
+              0,
+            )}`}
+          />
+          <MessagesList messages={showedMessages} />
+        </Box>
+        <Result createdProAndCons={createdProAndCons} voteStatus={voteStatus} />
       </div>
-    </>
+    </ThemeProvider>
   );
 };
 

@@ -1,6 +1,10 @@
 import React, { FC } from 'react';
-import LikeFilled from '../../assets/likeFilled.svg';
-import DislikeFilled from '../../assets/dislikeFilled.svg';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import Chip from '@mui/material/Chip';
+import { Typography } from '@mui/material';
 import styles from './Message.module.scss';
 
 enum EventType {
@@ -10,7 +14,7 @@ enum EventType {
   Dislike = 'Dislike',
 }
 
-interface MessageProps {
+export interface MessageProps {
   id: string;
   title: string;
   elementType: 'con' | 'pro';
@@ -18,26 +22,33 @@ interface MessageProps {
   time: string;
 }
 
-const getEventElement = (event: EventType) => {
+const capitalizeFLetter = (text: string) =>
+  `${text[0].toUpperCase()}${text.slice(1)}`;
+
+const getEventElement = (event: EventType, elementType: 'con' | 'pro') => {
   switch (event) {
     case EventType.CreateCon: {
-      return <div className={styles.con}>Added</div>;
+      return <Chip color="error" label="Added" icon={<RemoveIcon />} />;
     }
     case EventType.CreatePro: {
-      return <div className={styles.pro}>Added</div>;
+      return <Chip color="success" label="Added" icon={<AddIcon />} />;
     }
     case EventType.Like: {
       return (
-        <div className={styles.like}>
-          <img src={LikeFilled} />
-        </div>
+        <Chip
+          color="success"
+          label={capitalizeFLetter(elementType)}
+          icon={<FavoriteIcon />}
+        />
       );
     }
     case EventType.Dislike: {
       return (
-        <div className={styles.dislike}>
-          <img src={DislikeFilled} />
-        </div>
+        <Chip
+          color="error"
+          label={capitalizeFLetter(elementType)}
+          icon={<ThumbDownAltIcon />}
+        />
       );
     }
   }
@@ -50,11 +61,10 @@ export const Message: FC<MessageProps> = ({
   time,
 }) => {
   return (
-    <li className={styles.container}>
-      {time}
-      {getEventElement(event)}
-      <div className={styles[elementType]}>{elementType}</div>
-      {title}
-    </li>
+    <div className={styles.container}>
+      <Typography variant="caption">{time}</Typography>
+      {getEventElement(event, elementType)}
+      <Typography variant="body1">{title}</Typography>
+    </div>
   );
 };
