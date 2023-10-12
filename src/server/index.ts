@@ -56,6 +56,7 @@ app.use((req: Request, res: Response) => {
 const voteEndHandler = () => {
   console.log('vote ended');
   storage.votingStatus = false;
+  storage.votingData.endDate = Date.now() - storage.votingData.startDate;
 
   storage.createEventsTimers.forEach((timer) => {
     clearTimeout(timer);
@@ -116,14 +117,43 @@ const voteStartHandler = (
   );
 };
 
-io.on('connection', (socket) => {
-  console.log('a user connected');
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
+let connectedUsers = 0;
 
-  socket.on('chat message', () => {
-    io.emit('chat message', storage.votingData.messages);
+let messagesInterval: NodeJS.Timeout;
+let resultInterval: NodeJS.Timeout;
+
+io.on('connection', (socket) => {
+  if (!connectedUsers) {
+    messagesInterval = setInterval(() => {
+      io.emit('chat message', storage.votingData.messages);
+    }, 500);
+
+    resultInterval = setInterval(() => {
+      const time = convertMillisecondsInTime(
+        storage.votingData.endDate
+          ? storage.votingData.endDate
+          : storage.votingStatus
+          ? Date.now() - storage.votingData.startDate
+          : 0,
+        false,
+      );
+      io.emit('vote result', {
+        createdProsAndCons: storage.votingData.createdProsAndCons,
+        time,
+      });
+    }, 1000);
+  }
+  connectedUsers++;
+  console.log('connected users: ', connectedUsers);
+
+  socket.on('disconnect', () => {
+    connectedUsers--;
+    console.log('connected users: ', connectedUsers);
+
+    if (!connectedUsers) {
+      clearInterval(messagesInterval);
+      clearInterval(resultInterval);
+    }
   });
 
   socket.on('vote start', voteStartHandler);
@@ -131,16 +161,6 @@ io.on('connection', (socket) => {
 
   socket.on('vote status', () => {
     io.emit('vote status', storage.votingStatus);
-  });
-
-  socket.on('vote result', () => {
-    io.emit('vote result', {
-      createdProsAndCons: storage.votingData.createdProsAndCons,
-      time: convertMillisecondsInTime(
-        Date.now() - storage.votingData.startDate,
-        false,
-      ),
-    });
   });
 
   socket.on('add pro or con', ({ text, type }) => {

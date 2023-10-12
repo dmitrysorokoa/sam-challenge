@@ -28,5 +28,6 @@ export interface VotingResult {
   cons: string[];
   createdProsAndCons: ProConElement[];
   startDate: number;
+  endDate?: number;
   messages: Message[];
 }

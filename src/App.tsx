@@ -30,26 +30,6 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (voteStatus) {
-      interval = setInterval(() => {
-        socket.emit('vote result');
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [voteStatus]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (voteStatus) {
-      interval = setInterval(() => {
-        socket.emit('chat message');
-      }, 500);
-    }
-    return () => clearInterval(interval);
-  }, [voteStatus]);
-
-  useEffect(() => {
     function onConnect() {
       setIsConnected(true);
     }
