@@ -5,6 +5,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import random from 'random';
+import compression from 'compression';
 import {
   DISTRUBUTION_SAMPLES,
   Distribution,
@@ -23,6 +24,8 @@ import {
 
 const app: Express = express();
 app.use(cors());
+app.use(compression());
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
