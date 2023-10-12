@@ -9,7 +9,6 @@ import {
   Legend,
   PointElement,
   LineElement,
-  ChartOptions,
 } from 'chart.js';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -31,7 +30,7 @@ ChartJS.register(
   LineElement,
 );
 
-export const options: ChartOptions = {
+export const options: any = {
   responsive: true,
   plugins: {
     legend: {
