@@ -5,13 +5,18 @@ import Typography from '@mui/material/Typography';
 import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
 import { socket } from '../../socket';
+import { Distribution } from '../../server/distribution';
 
 interface ConnectionManagerProps {
+  votesDistribution: Distribution;
+  elementsDistribution: Distribution;
   voteStatus: boolean | null;
   isConnected: boolean;
 }
 
 export const ConnectionManager: FC<ConnectionManagerProps> = ({
+  votesDistribution,
+  elementsDistribution,
   voteStatus,
   isConnected,
 }) => {
@@ -24,7 +29,10 @@ export const ConnectionManager: FC<ConnectionManagerProps> = ({
   };
 
   const voteStart = () => {
-    socket.emit('vote start');
+    socket.emit('vote start', {
+      votesDistributionType: votesDistribution,
+      elementsDistributionType: elementsDistribution,
+    });
   };
 
   const voteEnd = () => {

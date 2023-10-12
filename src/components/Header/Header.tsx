@@ -8,16 +8,21 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import logoUrl from '../../assets/logo.png';
 import { ConnectionManager } from '../ConnectionManager/ConnectionManager';
-import { Button } from '@mui/material';
+import { Badge, Button } from '@mui/material';
 import { Charts } from '../Charts/Charts';
+import { Distribution } from '../../server/distribution';
 
 interface HeaderProps {
+  votesDistribution: Distribution;
+  elementsDistribution: Distribution;
   voteStatus: boolean | null;
   isConnected: boolean;
   votesChart: { time: string[]; votes: number[] };
 }
 
 export const Header: FC<HeaderProps> = ({
+  votesDistribution,
+  elementsDistribution,
   voteStatus,
   isConnected,
   votesChart,
@@ -53,7 +58,7 @@ export const Header: FC<HeaderProps> = ({
 
   return (
     <>
-      <AppBar position="static">
+      <AppBar position="static" color={'warning' as any}>
         <Toolbar>
           <IconButton
             size="large"
@@ -74,13 +79,17 @@ export const Header: FC<HeaderProps> = ({
             alt="Logo"
             src={logoUrl}
           />
+
           <Typography
             variant="h6"
             component="div"
             sx={{ flexGrow: 1, marginLeft: 2 }}
           >
-            Pros And Cons Of Living In Australia
+            <Badge variant="dot" color={isConnected ? 'success' : 'error'}>
+              Pros And Cons Of Living In Australia
+            </Badge>
           </Typography>
+
           <Button color="inherit" onClick={toggleCharts(true)}>
             Charts
           </Button>
@@ -94,18 +103,15 @@ export const Header: FC<HeaderProps> = ({
           onKeyDown={toggleMenu(false)}
         >
           <ConnectionManager
+            votesDistribution={votesDistribution}
+            elementsDistribution={elementsDistribution}
             voteStatus={voteStatus}
             isConnected={isConnected}
           />
         </Box>
       </Drawer>
       <Drawer anchor="right" open={isChartsOpen} onClose={toggleCharts(false)}>
-        <Box
-          sx={{ width: 800 }}
-          role="presentation"
-          onClick={toggleCharts(false)}
-          onKeyDown={toggleCharts(false)}
-        >
+        <Box sx={{ width: 1000 }} role="presentation">
           <Charts votesChart={votesChart} />
         </Box>
       </Drawer>

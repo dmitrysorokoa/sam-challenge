@@ -1,22 +1,14 @@
 import random from 'random';
+import { convertMillisecondsInTime } from './helpers';
+import { INIT_DISTRIBUTION_SIZE, VOTING_DURATION } from './constants';
 
-const getLinearDistribution = (count: number, a = 0, b = 300000) => {
-  const etalonExpectedValue = (a + 2 * b) / 3;
-  const etalonVariance = Math.pow(b - a, 2) / 18;
-
-  const nums: any = [];
-
-  for (let i = 0; i < count; i++) {
-    const r = Math.max(Math.random(), Math.random());
-    nums.push(a + (b - a) * r);
-  }
-
-  return { nums, etalonExpectedValue, etalonVariance };
-};
+function intFromInterval(value: number, min = 0, max = VOTING_DURATION) {
+  return Math.floor(value * (max - min + 1) + min);
+}
 
 export const getNormalDistributionNumber = (
   min = 0,
-  max = 300000,
+  max = VOTING_DURATION,
   skew = 1,
 ) => {
   let u = 0,
@@ -25,7 +17,7 @@ export const getNormalDistributionNumber = (
   while (v === 0) v = Math.random();
   let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 
-  num = num / 10.0 + 0.5; // Translate to 0 -> 1
+  num = num / 5.0 + 0.5; // Translate to 0 -> 1
   if (num > 1 || num < 0) num = getNormalDistributionNumber(min, max, skew);
   else {
     num = Math.pow(num, skew); // Skew
@@ -35,24 +27,45 @@ export const getNormalDistributionNumber = (
   return num;
 };
 
-function intFromInterval(value: number, min = 0, max = 300000) {
-  return Math.floor(value * (max - min + 1) + min);
-}
+const getLinearDistribution = (
+  reverse = false,
+  count: number = INIT_DISTRIBUTION_SIZE,
+  a = 0,
+  b = VOTING_DURATION,
+) => {
+  let nums: number[] = [];
 
-const getNormalDistribution = (count: number) => {
-  const nums: any = [];
+  for (let i = 0; i < count; i++) {
+    const r = Math.max(Math.random(), Math.random());
+    nums.push(a + (b - a) * r);
+  }
+
+  if (reverse) {
+    nums = nums.map((el) => Math.abs(el - VOTING_DURATION));
+  }
+
+  return { nums };
+};
+
+const getNormalDistribution = (count: number = INIT_DISTRIBUTION_SIZE) => {
+  let nums: number[] = [];
 
   for (let i = 0; i < count; i++) {
     nums.push(getNormalDistributionNumber());
   }
 
-  return { nums, etalonExpectedValue: 0, etalonVariance: 0 };
+  nums = nums.filter((el: number) => el < VOTING_DURATION && el > 0);
+
+  return { nums };
 };
 
-const getExponentialDistribution = (count: number) => {
-  const nums: any = [];
+const getExponentialDistribution = (
+  reverse = false,
+  count: number = INIT_DISTRIBUTION_SIZE,
+) => {
+  let nums: number[] = [];
 
-  const lambda = 7;
+  const lambda = 4;
 
   const exp = random.exponential(lambda);
 
@@ -60,34 +73,46 @@ const getExponentialDistribution = (count: number) => {
     nums.push(intFromInterval(exp()));
   }
 
+  if (reverse) {
+    nums = nums.map((el) => Math.abs(el - VOTING_DURATION));
+  }
+
   return {
     nums,
-    etalonExpectedValue: (1 / lambda) * 300,
-    etalonVariance: 1 / Math.pow(lambda / 300, 2),
   };
 };
 
-export const getLogNormalDistribution = (count: number) => {
-  const nums: any = [];
+export const getLogNormalDistribution = (
+  reverse = false,
+  count: number = INIT_DISTRIBUTION_SIZE,
+) => {
+  let nums: number[] = [];
 
-  const logNormal = random.logNormal(0, 0.9);
+  const logNormal = random.logNormal(0, 0.8);
 
   for (let i = 0; i < count; i++) {
     nums.push(intFromInterval(logNormal() / Math.PI));
   }
 
+  nums = nums.filter((el: number) => el < VOTING_DURATION && el > 0);
+
+  if (reverse) {
+    nums = nums.map((el) => Math.abs(el - VOTING_DURATION));
+  }
+
   return {
-    nums: nums.filter((el: number) => el < 300000 && el > 0),
-    etalonExpectedValue: 0,
-    etalonVariance: 0,
+    nums,
   };
 };
 
 export enum Distribution {
-  Normal,
-  Linear,
-  Exp,
-  LogNormal,
+  Normal = 'Normal',
+  Linear = 'Linear',
+  Exp = 'Exp',
+  LogNormal = 'LogNormal',
+  LogNormalReverse = 'LogNormalReverse',
+  ExpReverse = 'ExpReverse',
+  LinearReverse = 'LinearReverse',
 }
 
 const distributionMap = {
@@ -95,15 +120,17 @@ const distributionMap = {
   [Distribution.Linear]: getLinearDistribution,
   [Distribution.Exp]: getExponentialDistribution,
   [Distribution.LogNormal]: getLogNormalDistribution,
+  [Distribution.LogNormalReverse]: () => getLogNormalDistribution(true),
+  [Distribution.ExpReverse]: () => getExponentialDistribution(true),
+  [Distribution.LinearReverse]: () => getLinearDistribution(true),
 };
 
-const getChartData = (nums: number[]) => {
+export const getChartData = (nums: number[], step = 5000) => {
   const min = 0,
-    max = 300000,
-    step = 100;
+    max = VOTING_DURATION;
 
   const count = Math.ceil((max - min) / step);
-  const data = new Array(count).fill(0);
+  const data: number[] = new Array(count).fill(0);
 
   nums.forEach((item) => {
     const section = Math.floor(item / step);
@@ -114,32 +141,30 @@ const getChartData = (nums: number[]) => {
     const first = Number((index * step).toFixed(2));
     const second = Number((first + step).toFixed(2));
 
-    return `${first} - ${second}`;
+    return `${convertMillisecondsInTime(
+      first,
+      false,
+    )} - ${convertMillisecondsInTime(second, false)}`;
   });
 
   return { count, data, labels };
 };
 
-export const getDistribution = (type: Distribution, count = 100000) => {
-  const { nums, etalonExpectedValue, etalonVariance } =
-    distributionMap[type](count);
-
-  const sum = nums.reduce((acc: number, el: number) => acc + el, 0);
-  const calculatedExpectedValue = sum / count;
-
-  const dSUM = nums.reduce(
-    (acc: number, el: number) =>
-      acc + Math.pow(el - calculatedExpectedValue, 2),
-    0,
-  );
-  const calculatedVariance = dSUM / count;
+export const getDistribution = (type: Distribution) => {
+  const { nums } = distributionMap[type]();
 
   return {
-    etalonExpectedValue,
-    calculatedExpectedValue,
-    etalonVariance,
-    calculatedVariance,
     nums,
     chartData: getChartData(nums),
   };
+};
+
+export const DISTRUBUTION_SAMPLES = {
+  normal: { ...getDistribution(Distribution.Normal) },
+  linear: { ...getDistribution(Distribution.Linear) },
+  exp: { ...getDistribution(Distribution.Exp) },
+  logNormal: { ...getDistribution(Distribution.LogNormal) },
+  logNormalReverse: { ...getDistribution(Distribution.LogNormalReverse) },
+  expReverse: { ...getDistribution(Distribution.ExpReverse) },
+  linearReserve: { ...getDistribution(Distribution.LinearReverse) },
 };

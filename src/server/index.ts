@@ -1,30 +1,25 @@
 import express, { Express, Request, Response } from 'express';
+import { faker } from '@faker-js/faker';
 import path from 'path';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import random from 'random';
 import {
+  DISTRUBUTION_SAMPLES,
   Distribution,
+  getChartData,
   getDistribution,
-  getLogNormalDistribution,
 } from './distribution';
-import { EventType } from './types';
-import {
-  convertMillisecondsInTime,
-  getRandomCreatedElement,
-  getRandomElementText,
-  initVoting,
-} from './helpers';
-import {
-  createConEvent,
-  createProEvent,
-  dislikeEvent,
-  eventsMap,
-  likeEvent,
-} from './eventsHandlers';
+import { convertMillisecondsInTime, initVoting } from './helpers';
+import { createElementEvent, dislikeEvent, likeEvent } from './eventsHandlers';
 import { storage } from './storage';
-import { faker } from '@faker-js/faker';
+import { createRandomElement, voteRandomElement } from './eventsGenerator';
+import {
+  VOTING_DURATION,
+  RANDOM_ELEMENTS_COUNT,
+  RANDOM_VOTES_COUNT,
+} from './constants';
 
 const app: Express = express();
 app.use(cors());
@@ -45,10 +40,9 @@ app.use(express.static('public'));
 
 app.get('/api/distributions', (req: Request, res: Response) => {
   res.send({
-    normal: { ...getDistribution(Distribution.Normal) },
-    linear: { ...getDistribution(Distribution.Linear) },
-    exp: { ...getDistribution(Distribution.Exp) },
-    logNormal: { ...getDistribution(Distribution.LogNormal) },
+    ...DISTRUBUTION_SAMPLES,
+    elementsDistribution: getChartData(storage.createElementTimeDistribution),
+    votesDistribution: getChartData(storage.voteTimeDistribution),
   });
 });
 
@@ -71,72 +65,52 @@ const voteEndHandler = () => {
   io.emit('vote end');
 };
 
-const voteStartHandler = () => {
+const voteStartHandler = (
+  { votesDistributionType, elementsDistributionType } = {
+    votesDistributionType: Distribution.LogNormalReverse,
+    elementsDistributionType: Distribution.LogNormal,
+  },
+) => {
   console.log('vote started');
   storage.votingStatus = true;
   storage.votingData = initVoting();
   io.emit('vote start');
 
-  storage.voteEndTimer = setTimeout(voteEndHandler, 300000);
+  storage.voteEndTimer = setTimeout(voteEndHandler, VOTING_DURATION);
 
-  const nums = getLogNormalDistribution(12000).nums;
+  const elementsDistribution = getDistribution(elementsDistributionType).nums;
 
-  const array = Array(20)
+  storage.createElementTimeDistribution = Array(RANDOM_ELEMENTS_COUNT)
     .fill(0)
     .map(() => {
-      const randomIndex = random.int(0, nums.length);
+      const randomIndex = random.int(0, elementsDistribution.length);
 
-      return nums[randomIndex] || 0;
+      return elementsDistribution[randomIndex] || 0;
     });
 
-  console.log(nums.length);
-  console.log(array);
+  const firstElementCreationTime = Math.min(
+    ...storage.createElementTimeDistribution,
+  );
 
-  storage.voteEventsTimers = nums.map((el: number) => {
-    return setTimeout(
-      () => {
-        const events = [
-          eventsMap[EventType.Dislike],
-          eventsMap[EventType.Like],
-        ];
+  const votesDistribution = getDistribution(votesDistributionType).nums.filter(
+    (el) => el > firstElementCreationTime,
+  );
 
-        const element = getRandomCreatedElement(
-          storage.votingData.createdProsAndCons,
-        );
+  storage.voteTimeDistribution = Array(RANDOM_VOTES_COUNT)
+    .fill(0)
+    .map(() => {
+      const randomIndex = random.int(0, votesDistribution.length);
 
-        if (element) {
-          events[random.int()](element);
-        }
-      },
-      Math.abs(el - 300000),
-    );
-  });
+      return votesDistribution[randomIndex] || 0;
+    });
 
-  storage.createEventsTimers = array.map((num) => {
-    return setTimeout(() => {
-      const events = [
-        eventsMap[EventType.CreateCon],
-        eventsMap[EventType.CreatePro],
-      ];
-      const randomIndex = random.int();
+  storage.voteEventsTimers = storage.voteTimeDistribution.map((time) =>
+    setTimeout(voteRandomElement, time),
+  );
 
-      let text = getRandomElementText(
-        storage.votingData[randomIndex ? 'pros' : 'cons'],
-      );
-
-      if (text) {
-        events[randomIndex](text);
-      } else {
-        text = getRandomElementText(
-          storage.votingData[!randomIndex ? 'pros' : 'cons'],
-        );
-
-        if (text) {
-          events[Number(!randomIndex)](text);
-        }
-      }
-    }, num);
-  });
+  storage.createEventsTimers = storage.createElementTimeDistribution.map(
+    (time) => setTimeout(createRandomElement, time),
+  );
 };
 
 io.on('connection', (socket) => {
@@ -166,19 +140,13 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('add pro or con', (data) => {
-    const text = data.text || faker.word.words({ count: 2 });
-
-    if (data.type === 'pro') {
-      createProEvent(text);
-    } else {
-      createConEvent(text);
-    }
+  socket.on('add pro or con', ({ text, type }) => {
+    createElementEvent(text || faker.word.words({ count: 2 }), type);
   });
 
-  socket.on('like', (data) => {
+  socket.on('like', ({ id }) => {
     const element = storage.votingData.createdProsAndCons.find(
-      (item) => item.id === data.id,
+      (item) => item.id === id,
     );
 
     if (element) {
@@ -186,9 +154,9 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('dislike', (data) => {
+  socket.on('dislike', ({ id }) => {
     const element = storage.votingData.createdProsAndCons.find(
-      (item) => item.id === data.id,
+      (item) => item.id === id,
     );
 
     if (element) {

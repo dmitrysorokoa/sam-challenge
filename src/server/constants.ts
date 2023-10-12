@@ -23,3 +23,8 @@ export const initCons = [
   'Relationship with alcohol',
   'Everything closes early',
 ];
+
+export const VOTING_DURATION = 300000;
+export const RANDOM_ELEMENTS_COUNT = initPros.length + initCons.length;
+export const INIT_DISTRIBUTION_SIZE = 50000;
+export const RANDOM_VOTES_COUNT = 10000;

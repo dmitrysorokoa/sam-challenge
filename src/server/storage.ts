@@ -7,6 +7,8 @@ interface LocalStorage {
   voteEndTimer: any;
   votingData: VotingResult;
   votingStatus: boolean;
+  createElementTimeDistribution: number[];
+  voteTimeDistribution: number[];
 }
 
 export const storage: LocalStorage = {
@@ -15,4 +17,6 @@ export const storage: LocalStorage = {
   voteEndTimer: null,
   votingData: initVoting(),
   votingStatus: false,
+  createElementTimeDistribution: [],
+  voteTimeDistribution: [],
 };

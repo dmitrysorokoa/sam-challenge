@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { convertMillisecondsInTime } from './helpers';
-import { EventType, ProConElement } from './types';
+import { ElementType, EventType, ProConElement } from './types';
 import { storage } from './storage';
 
 export const likeEvent = (element: ProConElement) => {
@@ -24,6 +24,24 @@ export const dislikeEvent = (element: ProConElement) => {
     elementType: element.type,
     time: convertMillisecondsInTime(Date.now() - storage.votingData.startDate),
     title: element.title,
+  });
+};
+
+export const createElementEvent = (text: string, type: ElementType) => {
+  storage.votingData.createdProsAndCons.push({
+    id: faker.string.uuid(),
+    title: text,
+    likes: 0,
+    dislikes: 0,
+    type,
+  });
+
+  storage.votingData.messages.push({
+    id: faker.string.uuid(),
+    event: type === 'con' ? EventType.CreateCon : EventType.CreatePro,
+    elementType: type,
+    time: convertMillisecondsInTime(Date.now() - storage.votingData.startDate),
+    title: text,
   });
 };
 
@@ -64,8 +82,8 @@ export const createProEvent = (text: string) => {
 };
 
 export const eventsMap = {
-  [EventType.CreateCon]: createConEvent,
-  [EventType.CreatePro]: createProEvent,
+  [EventType.CreateCon]: createElementEvent,
+  [EventType.CreatePro]: createElementEvent,
   [EventType.Like]: likeEvent,
   [EventType.Dislike]: dislikeEvent,
 };

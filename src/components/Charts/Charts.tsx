@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect, useMemo } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,7 +11,12 @@ import {
   LineElement,
   ChartOptions,
 } from 'chart.js';
-import { Bar, Line } from 'react-chartjs-2';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Bar } from 'react-chartjs-2';
 import { serverUrl } from '../../constants';
 import styles from './Charts.module.scss';
 
@@ -36,9 +41,14 @@ export const options: ChartOptions = {
   animation: {
     duration: 0,
   },
+  scales: {
+    y: {
+      position: 'right',
+    },
+  },
 };
 
-const createChartData = (data: any, name: string) => {
+const createChartData = (data: any, name: string = 'Dataset') => {
   return {
     labels: data.labels,
     datasets: [
@@ -67,69 +77,108 @@ interface ChartsProps {
 }
 
 export const Charts: FC<ChartsProps> = ({ votesChart }) => {
-  const [chartLinear, setChartLinear] = useState<any>(null);
-  const [chartNormal, setChartNormal] = useState<any>(null);
-  const [chartExp, setChartExp] = useState<any>(null);
-  const [chartLogNormal, setChartLogNormal] = useState<any>(null);
+  const [chartVotesDistribution, setChartVotesDistribution] =
+    useState<any>(null);
+  const [chartElementsDistrubution, setChartElementsDistrubution] =
+    useState<any>(null);
+  const [samplesDistributions, setSamplesDistributions] = useState<any>({});
+
+  const votesData = useMemo(() => {
+    return {
+      time: votesChart.time.filter((el, index) => index % 5 === 0),
+      votes: votesChart.votes.filter((el, index) => index % 5 === 0),
+    };
+  }, [votesChart]);
 
   const getDistributions = async () => {
     try {
       const body = await sendRequest('/api/distributions');
-      setChartLinear(
-        createChartData(body.linear.chartData, 'Linear distribution'),
+      setChartElementsDistrubution(
+        createChartData(
+          body.elementsDistribution,
+          'Pros and Cons distribution',
+        ),
       );
-      setChartNormal(
-        createChartData(body.normal.chartData, 'Normal distribution'),
+      setChartVotesDistribution(
+        createChartData(body.votesDistribution, 'Votes distribution'),
       );
-      setChartExp(createChartData(body.exp.chartData, 'Exp distribution'));
-      setChartLogNormal(
-        createChartData(body.logNormal.chartData, 'LogNormal distribution'),
-      );
+      setSamplesDistributions({
+        normal: createChartData(body.normal.chartData, 'normal'),
+        linear: createChartData(body.linear.chartData, 'linear'),
+        exp: createChartData(body.exp.chartData, 'exp'),
+        logNormal: createChartData(body.logNormal.chartData, 'logNormal'),
+        logNormalReverse: createChartData(
+          body.logNormalReverse.chartData,
+          'logNormalReverse',
+        ),
+        expReverse: createChartData(body.expReverse.chartData, 'expReverse'),
+        linearReserve: createChartData(
+          body.linearReserve.chartData,
+          'linearReserve',
+        ),
+      });
     } catch (e) {
       console.error(e);
     }
   };
 
   useEffect(() => {
-    // getDistributions();
+    getDistributions();
   }, []);
 
   return (
     <div className={styles.charts}>
-      {votesChart && (
+      {votesData && (
         <div className={styles.chartContainer}>
-          <Line
-            options={options}
+          <Bar
+            options={{
+              ...options,
+              scales: {
+                y: {
+                  position: 'right',
+                  suggestedMin: 0,
+                  suggestedMax: 10000,
+                },
+              },
+            }}
             data={createChartData(
               {
-                labels: votesChart.time,
-                data: votesChart.votes,
+                labels: chartVotesDistribution?.labels || votesData.time,
+                data: votesData.votes,
               },
               'Votes',
             )}
           />
         </div>
       )}
-      {/* {chartLinear && (
+      {chartVotesDistribution && (
         <div className={styles.chartContainer}>
-          <Bar options={options} data={chartLinear} />
+          <Bar options={options} data={chartVotesDistribution} />
         </div>
       )}
-      {chartNormal && (
+      {chartElementsDistrubution && (
         <div className={styles.chartContainer}>
-          <Bar options={options} data={chartNormal} />
+          <Bar options={options} data={chartElementsDistrubution} />
         </div>
       )}
-      {chartExp && (
-        <div className={styles.chartContainer}>
-          <Bar options={options} data={chartExp} />
-        </div>
-      )}
-      {chartLogNormal && (
-        <div className={styles.chartContainer}>
-          <Bar options={options} data={chartLogNormal} />
-        </div>
-      )} */}
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>Distributions samples</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {Object.keys(samplesDistributions).map((distribution) => (
+            <div
+              key={samplesDistributions[distribution].datasets[0].label}
+              className={styles.chartContainer}
+            >
+              <Bar
+                options={options}
+                data={samplesDistributions[distribution]}
+              />
+            </div>
+          ))}
+        </AccordionDetails>
+      </Accordion>
     </div>
   );
 };
